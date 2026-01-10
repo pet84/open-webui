@@ -342,6 +342,54 @@ async def get_model_by_id(
 ###########################
 
 
+def get_model_icon_url(model_id: str, model_name: str = None) -> Optional[str]:
+    """Get model icon URL based on model ID or name"""
+    model_lower = (model_id or "").lower()
+    name_lower = (model_name or "").lower()
+    
+    # Map model IDs/names to icon URLs
+    model_icons = {
+        # OpenAI models
+        "gpt-4": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg",
+        "gpt-3.5": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg",
+        "gpt-4o": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg",
+        "gpt-4-turbo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg",
+        # Claude models
+        "claude": "https://www.anthropic.com/favicon.ico",
+        "claude-3": "https://www.anthropic.com/favicon.ico",
+        "claude-3.5": "https://www.anthropic.com/favicon.ico",
+        "claude-3-opus": "https://www.anthropic.com/favicon.ico",
+        "claude-3-sonnet": "https://www.anthropic.com/favicon.ico",
+        "claude-3-haiku": "https://www.anthropic.com/favicon.ico",
+        # Gemini models
+        "gemini": "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
+        "gemini-pro": "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
+        "gemini-ultra": "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
+        # Llama models
+        "llama": "https://www.llama-cpp.com/favicon.ico",
+        "llama-2": "https://www.llama-cpp.com/favicon.ico",
+        "llama-3": "https://www.llama-cpp.com/favicon.ico",
+        # Mistral models
+        "mistral": "https://mistral.ai/favicon.ico",
+        "mixtral": "https://mistral.ai/favicon.ico",
+        # Other models
+        "ollama": "https://ollama.com/favicon.ico",
+    }
+    
+    # Check model ID first
+    for key, icon_url in model_icons.items():
+        if key in model_lower:
+            return icon_url
+    
+    # Check model name if provided
+    if name_lower:
+        for key, icon_url in model_icons.items():
+            if key in name_lower:
+                return icon_url
+    
+    return None
+
+
 @router.get("/model/profile/image")
 def get_model_profile_image(
     id: str, user=Depends(get_verified_user), db: Session = Depends(get_session)
@@ -375,6 +423,14 @@ def get_model_profile_image(
                     )
                 except Exception as e:
                     pass
+        
+        # Try to get automatic icon based on model ID/name
+        auto_icon_url = get_model_icon_url(model.id, model.name)
+        if auto_icon_url:
+            return Response(
+                status_code=status.HTTP_302_FOUND,
+                headers={"Location": auto_icon_url},
+            )
 
         return FileResponse(f"{STATIC_DIR}/favicon.png")
     else:
