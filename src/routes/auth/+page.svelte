@@ -581,14 +581,14 @@
 		</div>
 
 		{#if !$config?.metadata?.auth_logo_position}
-			<div class="fixed m-10 z-50">
-				<div class="flex space-x-2">
-					<div class=" self-center">
+			<div class="fixed top-10 left-1/2 transform -translate-x-1/2 z-50">
+				<div class="flex justify-center">
+					<div class="self-center">
 						<img
 							id="logo"
 							crossorigin="anonymous"
 							src="{WEBUI_BASE_URL}/static/favicon.png"
-							class=" w-6 rounded-full"
+							class="w-24 h-24 rounded-full"
 							alt=""
 						/>
 					</div>
