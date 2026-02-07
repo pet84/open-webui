@@ -398,3 +398,14 @@ class Pipe:
    - **Systémový prompt + „pracuj“:** V nastavení chatu (nebo v první systémové zprávě) nastav **odkaz / instrukci** – co se má s obrázkem dělat. V chatu pak jen přilož obrázek a napiš **pracuj**. Pipe sloučí systémový text s tvou zprávou a pošle to do API – úprava proběhne podle systému.
 
 Opakované hlášky „Generuji…“ / „Generování obrázku dokončeno“ v jednom běhu bývají tím, že Open WebUI pipe spustí vícekrát; samotný kód s `IMAGE_NUM=1` vrací jeden obrázek na jedno volání.
+
+### Kolikrát se pipe opravdu volá? (log na serveru)
+
+Aby sis ověřil, že za to může víc požadavků z UI, můžeš na **začátek** metody `pipe()` (hned za `self.emitter = __event_emitter__`) dočasně přidat:
+
+```python
+import logging
+logging.getLogger("open_webui.functions").warning("GPT Image pipe() volání")
+```
+
+Pak **restartuj backend** Open WebUI, pošli jednu zprávu (jeden obrázek) a v **logu serveru** (kde běží Open WebUI – konzole, stdout, nebo soubor z dockeru/PM2) hledej řádek `GPT Image pipe() volání`. Kolikrát se objeví za jednu tvoji zprávu, tolikrát se pipe opravdu spustil. Pokud je to víc než 1×, volání posílá frontend nebo middleware (ne náš kód). Log pak můžeš zase odstranit.
