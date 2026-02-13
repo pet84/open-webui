@@ -274,6 +274,23 @@
 					</div>
 					<div class=" self-center truncate">{$i18n.t('Admin Panel')}</div>
 				</DropdownMenu.Item>
+				<DropdownMenu.Item
+					as="a"
+					href="/admin/settings"
+					class="flex rounded-xl py-1.5 px-3 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition select-none"
+					on:click={async () => {
+						show = false;
+						if ($mobile) {
+							await tick();
+							showSidebar.set(false);
+						}
+					}}
+				>
+					<div class=" self-center mr-3">
+						<Settings className="w-5 h-5" strokeWidth="1.5" />
+					</div>
+					<div class=" self-center truncate">{$i18n.t('Admin Settings')}</div>
+				</DropdownMenu.Item>
 			{/if}
 
 			{#if help}
