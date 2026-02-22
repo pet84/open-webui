@@ -8,6 +8,8 @@ node_modules
 .env
 .env.*
 !.env.example
+# Klíče a lokální konfigurace ve složce local/
+local/.env
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Byte-compiled / optimized / DLL files
@@ -310,3 +312,6 @@ dist
 cypress/videos
 cypress/screenshots
 .vscode/settings.json
+
+# Internal notes with sensitive information
+INTERNAL_NOTES.md
