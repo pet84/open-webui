@@ -568,6 +568,7 @@ async def update_model_by_id(
 
 class ModelAccessGrantsForm(BaseModel):
     id: str
+    name: Optional[str] = None
     access_grants: list[dict]
 
 
@@ -591,7 +592,7 @@ async def update_model_access_by_id(
         model = Models.insert_new_model(
             ModelForm(
                 id=form_data.id,
-                name=form_data.id,
+                name=form_data.name or form_data.id,
                 meta=ModelMeta(),
                 params=ModelParams(),
             ),
