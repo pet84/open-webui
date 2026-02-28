@@ -879,6 +879,14 @@
 <svelte:head>
 	<title>{$WEBUI_NAME}</title>
 	<link crossorigin="anonymous" rel="icon" href="{WEBUI_BASE_URL}/static/favicon.png" />
+	{#if $config?.umami?.website_id}
+		<script
+			async
+			defer
+			data-website-id={$config.umami.website_id}
+			src={$config.umami.script_url || 'https://cdn.umami.is/script.js'}
+		></script>
+	{/if}
 
 	<meta name="apple-mobile-web-app-title" content={$WEBUI_NAME} />
 	<meta name="description" content={$WEBUI_NAME} />

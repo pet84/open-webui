@@ -1306,6 +1306,13 @@ RESPONSE_WATERMARK = PersistentConfig(
     os.environ.get("RESPONSE_WATERMARK", ""),
 )
 
+# Umami analytics (optional) – when set, frontend injects script; empty = disabled
+UMAMI_WEBSITE_ID = os.environ.get("UMAMI_WEBSITE_ID", "").strip()
+UMAMI_SCRIPT_URL = (
+    os.environ.get("UMAMI_SCRIPT_URL", "https://cdn.umami.is/script.js").strip()
+    or "https://cdn.umami.is/script.js"
+)
+
 
 USER_PERMISSIONS_WORKSPACE_MODELS_ACCESS = (
     os.environ.get("USER_PERMISSIONS_WORKSPACE_MODELS_ACCESS", "False").lower()
