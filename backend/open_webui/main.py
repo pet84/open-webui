@@ -506,6 +506,7 @@ from open_webui.env import (
     WEBUI_ADMIN_NAME,
     ENABLE_EASTER_EGGS,
     LOG_FORMAT,
+    DATA_DIR,
 )
 
 
@@ -2266,6 +2267,55 @@ async def update_webhook_url(form_data: UrlForm, user=Depends(get_admin_user)):
     app.state.config.WEBHOOK_URL = form_data.url
     app.state.WEBHOOK_URL = app.state.config.WEBHOOK_URL
     return {"url": app.state.config.WEBHOOK_URL}
+
+
+def _path_size_bytes(path) -> int:
+    """Return size in bytes of file or directory (recursive). Safe for missing paths."""
+    try:
+        p = path if hasattr(path, "exists") else __import__("pathlib").Path(path)
+        if not p.exists():
+            return 0
+        if p.is_file():
+            return p.stat().st_size
+        total = 0
+        for entry in os.scandir(p):
+            if entry.is_file(follow_symlinks=False):
+                try:
+                    total += entry.stat().st_size
+                except OSError:
+                    pass
+            else:
+                total += _path_size_bytes(entry.path)
+        return total
+    except OSError:
+        return 0
+
+
+@app.get("/api/storage/usage")
+async def get_storage_usage(user=Depends(get_admin_user)):
+    """Return disk usage breakdown for DATA_DIR (admin only)."""
+    data_dir = DATA_DIR
+    uploads_dir = UPLOAD_DIR
+    breakdown = {}
+    try:
+        if data_dir.exists():
+            for item in sorted(data_dir.iterdir(), key=lambda x: x.name):
+                try:
+                    size = _path_size_bytes(item)
+                    if size > 0:
+                        breakdown[item.name] = size
+                except OSError:
+                    pass
+        total = sum(breakdown.values())
+    except OSError:
+        total = 0
+    return {
+        "data_dir": str(data_dir),
+        "total_bytes": total,
+        "total_mb": round(total / (1024 * 1024), 2),
+        "breakdown": breakdown,
+        "breakdown_mb": {k: round(v / (1024 * 1024), 2) for k, v in breakdown.items()},
+    }
 
 
 @app.get("/api/version")
