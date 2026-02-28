@@ -840,8 +840,6 @@ app.state.config.PENDING_USER_OVERLAY_CONTENT = PENDING_USER_OVERLAY_CONTENT
 app.state.config.PENDING_USER_OVERLAY_TITLE = PENDING_USER_OVERLAY_TITLE
 
 app.state.config.RESPONSE_WATERMARK = RESPONSE_WATERMARK
-app.state.config.UMAMI_WEBSITE_ID = UMAMI_WEBSITE_ID
-app.state.config.UMAMI_SCRIPT_URL = UMAMI_SCRIPT_URL
 
 app.state.config.USER_PERMISSIONS = USER_PERMISSIONS
 app.state.config.WEBHOOK_URL = WEBHOOK_URL
@@ -2119,8 +2117,8 @@ async def get_app_config(request: Request):
             }
         },
         "umami": {
-            "website_id": app.state.config.UMAMI_WEBSITE_ID or "",
-            "script_url": app.state.config.UMAMI_SCRIPT_URL or "https://cdn.umami.is/script.js",
+            "website_id": UMAMI_WEBSITE_ID or "",
+            "script_url": UMAMI_SCRIPT_URL or "https://cdn.umami.is/script.js",
         },
         "features": {
             "auth": WEBUI_AUTH,
