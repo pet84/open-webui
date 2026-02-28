@@ -629,9 +629,6 @@ ${content}
 		}
 	};
 
-	// Match markdown image refs: ![alt](data://id) or ![](data://id) — used to preserve images when improving notes
-	const IMAGE_REF_REGEX = /!\[[^\]]*\]\((data:\/\/[^)]+)\)/g;
-
 	const enhanceCompletionHandler = async (model) => {
 		stopResponseFlag = false;
 		let enhancedContent = {
@@ -640,30 +637,13 @@ ${content}
 			md: ''
 		};
 
-		const originalMd = note.data.content.md || '';
-		const imageRefsInNote = [...originalMd.matchAll(IMAGE_REF_REGEX)].map((m) => m[0]);
-		const hasImages = imageRefsInNote.length > 0;
-		const imagePreservationInstruction = hasImages
-			? `
+		const systemPrompt = `Enhance existing notes using additional context provided from audio transcription or uploaded file content in the content's primary language. Your task is to make the notes more useful and comprehensive by incorporating relevant information from the provided context.
 
-# Preserving images
-
-The note contains ${imageRefsInNote.length} image reference(s) in the form ![](data://ID) or ![alt](data://ID). You MUST include each of these exact image markdown snippets in your enhanced output at an appropriate place (e.g. where they fit the structure). Do not remove, omit, or alter these image references.`
-			: '';
-
-		const systemPrompt = `Enhance existing notes using additional context provided from audio transcription or uploaded file content in the content's primary language.
-
-# Critical: Preserve structure and order
-
-- Keep the SAME order of sections, headings, and paragraphs as in the original note. Do not reorder, merge, or split sections.
-- Only improve wording, fix grammar, add missing details from the context, and use markdown (headings, lists, task lists [ ], emphasis) for clarity. Do not rewrite the note from scratch.
-- Output must be the same length and structure as the input note, with the same logical flow—only refined.
-
-Input will be provided within <notes> and <context> XML tags.
+Input will be provided within and XML tags, providing a structure for the existing notes and context respectively.
 
 # Output Format
 
-Return only the markdown formatted note, preserving the original structure and order.${imagePreservationInstruction}
+Provide the enhanced notes in markdown format. Use markdown syntax for headings, lists, task lists ([ ]) where tasks or checklists are strongly implied, and emphasis to improve clarity and presentation. Ensure that all integrated content from the context is accurately reflected. Return only the markdown formatted note.
 `;
 
 		const [res, controller] = await chatCompletion(
@@ -679,9 +659,9 @@ Return only the markdown formatted note, preserving the original structure and o
 					{
 						role: 'user',
 						content:
-							`<notes>${note.data.content.md}</notes>` +
+							` ${note.data.content.md} ` +
 							(files && files.length > 0
-								? `\n<context>${files.map((file) => `${file.name}: ${file?.file?.data?.content ?? 'Could not extract content'}\n`).join('')}</context>`
+								? `\n ${files.map((file) => `${file.name}: ${file?.file?.data?.content ?? 'Could not extract content'}\n`).join('')} `
 								: '')
 					}
 				]
@@ -742,18 +722,6 @@ Return only the markdown formatted note, preserving the original structure and o
 				} catch (error) {
 					console.log(error);
 				}
-			}
-		}
-
-		// Preserve images: if the model dropped some image refs, re-inject them so they are not lost
-		if (hasImages && enhancedContent.md) {
-			const refsInEnhanced = [...enhancedContent.md.matchAll(IMAGE_REF_REGEX)].map((m) => m[0]);
-			const missingRefs = imageRefsInNote.filter((ref) => !refsInEnhanced.includes(ref));
-			if (missingRefs.length > 0) {
-				enhancedContent.md += '\n\n' + missingRefs.join('\n\n');
-				enhancedContent.html = marked.parse(enhancedContent.md);
-				note.data.content.md = enhancedContent.md;
-				note.data.content.html = enhancedContent.html;
 			}
 		}
 
