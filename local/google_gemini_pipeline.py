@@ -805,12 +805,10 @@ class Pipe:
             )
         else:
             self.log.debug("Initializing Google Generative AI client with API Key")
-            api_key = EncryptedStr.decrypt(self.valves.GOOGLE_API_KEY)
-            if not api_key or (
-                isinstance(api_key, str) and api_key.startswith("encrypted:")
-            ):
+            api_key = self._get_effective_api_key()
+            if not api_key:
                 raise ValueError(
-                    "GOOGLE_API_KEY could not be decrypted. Set WEBUI_SECRET_KEY (same as when the key was saved) or re-enter the API key in pipeline settings (gear icon)."
+                    "GOOGLE_API_KEY is missing. Set GOOGLE_API_KEY in Railway env vars (preferred) or re-enter the API key in pipeline settings (gear icon)."
                 )
             headers = {}
             if (
@@ -856,6 +854,23 @@ class Pipe:
                 http_options=options,
             )
 
+    def _get_effective_api_key(self) -> str:
+        """
+        Returns the API key to use, preferring GOOGLE_API_KEY from env over stored valves.
+        This avoids key loss after deploy when WEBUI_SECRET_KEY changes and stored
+        encrypted value cannot be decrypted.
+        """
+        env_key = (os.getenv("GOOGLE_API_KEY") or "").strip()
+        if env_key:
+            self.log.debug("Using GOOGLE_API_KEY from environment")
+            return env_key
+        decrypted = EncryptedStr.decrypt(self.valves.GOOGLE_API_KEY)
+        if decrypted and not (
+            isinstance(decrypted, str) and decrypted.startswith("encrypted:")
+        ):
+            return decrypted
+        return ""
+
     def _validate_api_key(self) -> None:
         """
         Validates that the necessary Google API credentials are set.
@@ -875,10 +890,11 @@ class Pipe:
                 "Using Vertex AI. Ensure ADC or service account is configured."
             )
         else:
-            if not self.valves.GOOGLE_API_KEY:
+            api_key = self._get_effective_api_key()
+            if not api_key:
                 self.log.error("GOOGLE_API_KEY is not set (and not using Vertex AI).")
                 raise ValueError(
-                    "GOOGLE_API_KEY is not set. Please provide the API key in the environment variables or valves."
+                    "GOOGLE_API_KEY is not set. Set GOOGLE_API_KEY env var or provide the API key in pipeline settings (gear icon)."
                 )
             self.log.debug("Using Google Generative AI API with API Key.")
 

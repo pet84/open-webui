@@ -1,5 +1,6 @@
 import re
 import os
+from urllib.parse import urlparse
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -132,6 +133,36 @@ def set_xpermitted_cross_domain_policies(value: str):
 
 # Set Content-Security-Policy response header
 def set_content_security_policy(value: str):
+    # If UMAMI_SCRIPT_URL points to a custom domain (not cdn.umami.is), add its origin to script-src
+    # so the Umami analytics script can load (CSP would otherwise block it)
+    umami_url = (
+        os.environ.get("UMAMI_SCRIPT_URL", "").strip()
+        or "https://cdn.umami.is/script.js"
+    )
+    if umami_url and not umami_url.startswith("https://cdn.umami.is/"):
+        try:
+            parsed = urlparse(umami_url)
+            origin = f"{parsed.scheme}://{parsed.netloc}"
+            # Add origin to script-src if not already present
+            if origin not in value:
+                # Match script-src directive and append our origin (handles script-src 'self' ... or script-src https: ...)
+                script_src_match = re.search(
+                    r"(script-src\s+)([^;]+)(;|$)",
+                    value,
+                    re.IGNORECASE,
+                )
+                if script_src_match:
+                    prefix, sources, suffix = script_src_match.groups()
+                    new_sources = sources.strip() + f" {origin}"
+                    value = (
+                        value[: script_src_match.start()]
+                        + prefix
+                        + new_sources
+                        + suffix
+                        + value[script_src_match.end() :]
+                    )
+        except Exception:
+            pass  # Keep original CSP on any error
     return {"Content-Security-Policy": value}
 
 

@@ -1334,9 +1334,15 @@ RESPONSE_WATERMARK = PersistentConfig(
 
 # Umami analytics (optional) – when set, frontend injects script; empty = disabled
 UMAMI_WEBSITE_ID = os.environ.get("UMAMI_WEBSITE_ID", "").strip()
-UMAMI_SCRIPT_URL = (
+_raw_umami = (
     os.environ.get("UMAMI_SCRIPT_URL", "https://cdn.umami.is/script.js").strip()
     or "https://cdn.umami.is/script.js"
+)
+# Validate: only allow https URLs to prevent CSP/security issues
+UMAMI_SCRIPT_URL = (
+    _raw_umami
+    if _raw_umami.startswith("https://")
+    else "https://cdn.umami.is/script.js"
 )
 
 
