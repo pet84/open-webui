@@ -2091,6 +2091,23 @@ async def list_tasks_by_chat_id_endpoint(
 ##################################
 
 
+def _get_umami_config(website_id: str, script_url: str) -> dict:
+    """Build Umami config with host_url for self-hosted (data-host-url)."""
+    url = script_url or "https://cdn.umami.is/script.js"
+    host_url = ""
+    if url and not url.startswith("https://cdn.umami.is/"):
+        try:
+            p = urlparse(url)
+            host_url = f"{p.scheme}://{p.netloc}"
+        except Exception:
+            pass
+    return {
+        "website_id": website_id or "",
+        "script_url": url or "https://cdn.umami.is/script.js",
+        "host_url": host_url,
+    }
+
+
 @app.get("/api/config")
 async def get_app_config(request: Request):
     user = None
@@ -2135,10 +2152,7 @@ async def get_app_config(request: Request):
                 for name, config in OAUTH_PROVIDERS.items()
             }
         },
-        "umami": {
-            "website_id": UMAMI_WEBSITE_ID or "",
-            "script_url": UMAMI_SCRIPT_URL or "https://cdn.umami.is/script.js",
-        },
+        "umami": _get_umami_config(UMAMI_WEBSITE_ID, UMAMI_SCRIPT_URL),
         "features": {
             "auth": WEBUI_AUTH,
             "auth_trusted_header": bool(app.state.AUTH_TRUSTED_EMAIL_HEADER),

@@ -133,8 +133,8 @@ def set_xpermitted_cross_domain_policies(value: str):
 
 # Set Content-Security-Policy response header
 def set_content_security_policy(value: str):
-    # If UMAMI_SCRIPT_URL points to a custom domain (not cdn.umami.is), add its origin to script-src
-    # so the Umami analytics script can load (CSP would otherwise block it)
+    # If UMAMI_SCRIPT_URL points to a custom domain (not cdn.umami.is), add its origin to
+    # script-src (load script) AND connect-src (send analytics data) – both are required
     umami_url = (
         os.environ.get("UMAMI_SCRIPT_URL", "").strip()
         or "https://cdn.umami.is/script.js"
@@ -143,9 +143,8 @@ def set_content_security_policy(value: str):
         try:
             parsed = urlparse(umami_url)
             origin = f"{parsed.scheme}://{parsed.netloc}"
-            # Add origin to script-src if not already present
             if origin not in value:
-                # Match script-src directive and append our origin (handles script-src 'self' ... or script-src https: ...)
+                # 1) Add to script-src (load tracker script)
                 script_src_match = re.search(
                     r"(script-src\s+)([^;]+)(;|$)",
                     value,
@@ -161,6 +160,28 @@ def set_content_security_policy(value: str):
                         + suffix
                         + value[script_src_match.end() :]
                     )
+                # 2) Add to connect-src (Umami must send data via fetch/XHR)
+                connect_src_match = re.search(
+                    r"(connect-src\s+)([^;]+)(;|$)",
+                    value,
+                    re.IGNORECASE,
+                )
+                if connect_src_match:
+                    prefix, sources, suffix = connect_src_match.groups()
+                    new_sources = sources.strip() + f" {origin}"
+                    value = (
+                        value[: connect_src_match.start()]
+                        + prefix
+                        + new_sources
+                        + suffix
+                        + value[connect_src_match.end() :]
+                    )
+                elif "connect-src" not in value.lower():
+                    # No connect-src → append one (Umami needs it to send data)
+                    value = value.rstrip()
+                    if not value.endswith(";"):
+                        value += ";"
+                    value += f" connect-src 'self' {origin}"
         except Exception:
             pass  # Keep original CSP on any error
     return {"Content-Security-Policy": value}

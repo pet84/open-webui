@@ -910,6 +910,7 @@
 			async
 			defer
 			data-website-id={$config.umami.website_id}
+			data-host-url={$config?.umami?.host_url || undefined}
 			src={$config.umami.script_url || 'https://cdn.umami.is/script.js'}
 		></script>
 	{/if}

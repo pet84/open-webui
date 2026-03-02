@@ -302,7 +302,10 @@ class Pipe:
             "Non-Gemini model IDs must be explicitly included in MODEL_WHITELIST to be available.",
         )
         MODEL_WHITELIST: str = Field(
-            default=os.getenv("GOOGLE_MODEL_WHITELIST", ""),
+            default=os.getenv(
+                "GOOGLE_MODEL_WHITELIST",
+                "gemini-3.1-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-3.1-flash-image-preview,gemini-live-2.5-flash,gemini-2.5-flash-native-audio-preview-12-2025",
+            ),
             description="A comma-separated list of model IDs to show in the models list. "
             "If set, only these models will be available (after MODEL_ADDITIONAL is applied). "
             "Leave empty to show all models.",
@@ -1001,7 +1004,8 @@ class Pipe:
             model_map = {model["id"]: model for model in available_models}
 
             # Apply MODEL_WHITELIST filter if configured (takes priority)
-            whitelist = self.valves.MODEL_WHITELIST
+            whitelist = (self.valves.MODEL_WHITELIST or "").strip()
+            deprecated_prefixes = ("gemini-3-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite")
             if whitelist:
                 self.log.debug(f"Applying model whitelist: {whitelist}")
                 whitelisted_ids = set(re.findall(r"[^,\s]+", whitelist))
@@ -1011,12 +1015,14 @@ class Pipe:
                 }
                 self.log.debug(f"After whitelist filter: {len(filtered_models)} models")
             else:
-                # If no whitelist, filter to only include models starting with 'gemini-' for safety
                 filtered_models = {
-                    k: v for k, v in model_map.items() if k.startswith("gemini-")
+                    k: v
+                    for k, v in model_map.items()
+                    if k.startswith("gemini-")
+                    and not any(k.startswith(p) for p in deprecated_prefixes)
                 }
                 self.log.debug(
-                    f"After gemini-prefix filter: {len(filtered_models)} models"
+                    f"After gemini-prefix filter (deprecated excluded): {len(filtered_models)} models"
                 )
 
             # Update cache
@@ -1040,14 +1046,9 @@ class Pipe:
         Returns:
             True if the model supports image generation, False otherwise
         """
-        # Known image generation models (both Gemini 2.5 and Gemini 3)
+        # Known image generation models (Nano Banana 2 – gemini-3.1-flash-image-preview)
         image_generation_models = [
-            "gemini-2.5-flash-image",
-            "gemini-2.5-flash-image-preview",
-            "gemini-3-flash-image",
-            "gemini-3-flash-image-preview",
-            "gemini-3-pro-image",
-            "gemini-3-pro-image-preview",
+            "gemini-3.1-flash-image-preview",
         ]
 
         # Check for exact matches or pattern matches
@@ -1096,21 +1097,16 @@ class Pipe:
         Returns:
             True if the model supports thinking, False otherwise
         """
-        # Models that do NOT support thinking
-        non_thinking_models = [
-            "gemini-2.5-flash-image-preview",
-            "gemini-2.5-flash-image",
-        ]
+        # Models that do NOT support thinking (image gen models)
+        non_thinking_models = []
 
         # Check for exact matches
         for pattern in non_thinking_models:
             if model_id == pattern or pattern in model_id:
                 return False
 
-        # Additional pattern checking - image generation models typically don't support thinking
-        if "image" in model_id.lower() and (
-            "generation" in model_id.lower() or "preview" in model_id.lower()
-        ):
+        # Image generation models typically don't support thinking
+        if "-image" in model_id.lower():
             return False
 
         # By default, assume models support thinking
