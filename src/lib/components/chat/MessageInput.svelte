@@ -363,6 +363,11 @@
 		chatInputElement?.replaceCommandWithText(text);
 	};
 
+	const handleSubmit = async (promptToSend = prompt) => {
+		const processedPrompt = await textVariableHandler(promptToSend);
+		dispatch('submit', processedPrompt);
+	};
+
 	const insertTextAtCursor = async (text: string) => {
 		const chatInput = document.getElementById('chat-input');
 		if (!chatInput) return;
@@ -1154,16 +1159,16 @@
 								document.getElementById('chat-input')?.focus();
 
 								if ($settings?.speechAutoSend ?? false) {
-									dispatch('submit', prompt);
+									handleSubmit(prompt);
 								}
 							}}
 						/>
 					</div>
 					<form
 						class="w-full flex flex-col gap-1.5 {recording ? 'hidden' : ''}"
-						on:submit|preventDefault={() => {
+						on:submit|preventDefault={async () => {
 							// check if selectedModels support image input
-							dispatch('submit', prompt);
+							await handleSubmit();
 						}}
 					>
 						<button
@@ -1454,7 +1459,7 @@
 																if (enterPressed) {
 																	e.preventDefault();
 																	if (prompt !== '' || files.length > 0) {
-																		dispatch('submit', prompt);
+																		handleSubmit();
 																	}
 																}
 															}
