@@ -193,17 +193,17 @@
 		});
 	};
 
-	const textVariableHandler = async (text: string) => {
+	const textVariableHandler = async (text: string, clipboardPromise = null) => {
 		if (text.includes('{{CLIPBOARD}}')) {
-			const clipboardText = await navigator.clipboard.readText().catch((err) => {
+			const clipboardText = await (clipboardPromise ?? navigator.clipboard.readText()).catch((err) => {
+				console.error('[{{CLIPBOARD}}] Failed to read clipboard:', err);
 				toast.error($i18n.t('Failed to read clipboard contents'));
 				return '{{CLIPBOARD}}';
 			});
 
-			const clipboardItems = await navigator.clipboard.read().catch((err) => {
-				console.error('Failed to read clipboard items:', err);
-				return [];
-			});
+			console.log('[{{CLIPBOARD}}] Replaced, length:', clipboardText?.length ?? 0);
+
+			const clipboardItems = await navigator.clipboard.read().catch(() => []);
 
 			for (const item of clipboardItems) {
 				for (const type of item.types) {
@@ -218,7 +218,7 @@
 				}
 			}
 
-			text = text.replaceAll('{{CLIPBOARD}}', clipboardText.replaceAll('\r\n', '\n'));
+			text = text.replaceAll('{{CLIPBOARD}}', (clipboardText ?? '').replaceAll('\r\n', '\n'));
 		}
 
 		if (text.includes('{{USER_LOCATION}}')) {
@@ -364,8 +364,19 @@
 	};
 
 	const handleSubmit = async (promptToSend = prompt) => {
-		const processedPrompt = await textVariableHandler(promptToSend);
-		dispatch('submit', processedPrompt);
+		// Vždy číst schránku při odeslání – pro {{CLIPBOARD}} v zprávě I v systémovém promptu modelu
+		// Čtení musí být zahájeno synchronně při kliknutí (user gesture)
+		const clipboardPromise = navigator.clipboard.readText();
+		const processedPrompt = await textVariableHandler(promptToSend, clipboardPromise);
+		let extraVariables = {};
+		try {
+			const clipboardText = await clipboardPromise;
+			extraVariables = { '{{CLIPBOARD}}': clipboardText ?? '' };
+			console.log('[CLIPBOARD] MessageInput (form/Enter) → backend, length:', clipboardText?.length ?? 0);
+		} catch (err) {
+			console.warn('[CLIPBOARD] MessageInput failed:', err);
+		}
+		dispatch('submit', { prompt: processedPrompt, extraVariables });
 	};
 
 	const insertTextAtCursor = async (text: string) => {

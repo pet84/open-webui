@@ -109,7 +109,7 @@ from open_webui.utils.filter import (
     process_filter_functions,
 )
 from open_webui.utils.code_interpreter import execute_code_jupyter
-from open_webui.utils.payload import apply_system_prompt_to_body
+from open_webui.utils.payload import apply_system_prompt_to_body, resolve_system_prompt
 from open_webui.utils.response import normalize_usage
 from open_webui.utils.mcp.client import MCPClient
 
@@ -2068,6 +2068,13 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     # -> Chat Code Interpreter (Form Data Update) -> (Default) Chat Tools Function Calling
     # -> Chat Files
 
+    # Ensure variables (e.g. {{CLIPBOARD}}) are in metadata for system prompt replacement
+    req_vars = form_data.get("variables") or {}
+    if req_vars:
+        metadata["variables"] = {**(metadata.get("variables") or {}), **req_vars}
+        if "{{CLIPBOARD}}" in req_vars:
+            log.debug("[CLIPBOARD] Backend received, length=%s", len(req_vars.get("{{CLIPBOARD}}", "")))
+
     form_data = apply_params_to_form_data(form_data, model)
     log.debug(f"form_data: {form_data}")
 
@@ -2112,13 +2119,13 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     # Process messages with OR-aligned output items for clean LLM messages
     form_data["messages"] = process_messages_with_output(form_data.get("messages", []))
 
-    system_message = get_system_message(form_data.get("messages", []))
-    if system_message:  # Chat Controls/User Settings
+    system_content = resolve_system_prompt(form_data, form_data.get("model"))
+    if system_content:
         try:
             form_data = apply_system_prompt_to_body(
-                system_message.get("content"), form_data, metadata, user, replace=True
-            )  # Required to handle system prompt variables
-        except:
+                system_content, form_data, metadata, user, replace=True
+            )
+        except Exception:
             pass
 
     form_data = await convert_url_images_to_base64(form_data)

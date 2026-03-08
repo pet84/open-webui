@@ -257,11 +257,22 @@
 		const { type, data } = e;
 
 		if (type === 'prompt') {
+			// Čtení schránky hned na začátku (user gesture při kliknutí na návrh)
+			const clipboardPromise = navigator.clipboard.readText();
 			// Handle prompt selection
 			messageInput?.setText(data, async () => {
 				if (!($settings?.insertSuggestionPrompt ?? false)) {
 					await tick();
-					submitPrompt(prompt);
+					let extraVariables = {};
+					try {
+						const txt = (await clipboardPromise) ?? '';
+						extraVariables = { '{{CLIPBOARD}}': txt };
+						console.log('[CLIPBOARD] onSelect (suggestion) → backend, length:', txt.length);
+					} catch (err) {
+						extraVariables = { '{{CLIPBOARD}}': '' };
+						console.warn('[CLIPBOARD] onSelect failed:', err);
+					}
+					submitPrompt(prompt, { extraVariables });
 				}
 			});
 		}
@@ -1691,7 +1702,10 @@
 	// Chat functions
 	//////////////////////////
 
-	const submitPrompt = async (userPrompt, { _raw = false } = {}) => {
+	const submitPrompt = async (userPrompt, { _raw = false, extraVariables = {} } = {}) => {
+		// Fallback: když CLIPBOARD chybí, zkusit přečíst schránku (např. action:submit, URL submit)
+		const clipboardPromise =
+			'{{CLIPBOARD}}' in extraVariables ? null : navigator.clipboard.readText();
 		console.log('submitPrompt', userPrompt, $chatId);
 
 		const _selectedModels = selectedModels.map((modelId) =>
@@ -1818,7 +1832,18 @@
 
 		saveSessionSelectedModels();
 
-		await sendMessage(history, userMessageId, { newChat: true });
+		// Sloučit fallback clipboard do extraVariables
+		if (clipboardPromise) {
+			try {
+				const txt = (await clipboardPromise) ?? '';
+				extraVariables = { ...extraVariables, '{{CLIPBOARD}}': txt };
+				console.log('[CLIPBOARD] submitPrompt fallback → backend, length:', txt.length);
+			} catch (e) {
+				extraVariables = { ...extraVariables, '{{CLIPBOARD}}': '' };
+				console.warn('[CLIPBOARD] submitPrompt fallback failed:', e);
+			}
+		}
+		await sendMessage(history, userMessageId, { newChat: true, extraVariables });
 	};
 
 	const sendMessage = async (
@@ -1828,12 +1853,14 @@
 			messages = null,
 			modelId = null,
 			modelIdx = null,
-			newChat = false
+			newChat = false,
+			extraVariables = {}
 		}: {
 			messages?: any[] | null;
 			modelId?: string | null;
 			modelIdx?: number | null;
 			newChat?: boolean;
+			extraVariables?: Record<string, string>;
 		} = {}
 	) => {
 		if (autoScroll) {
@@ -1936,7 +1963,8 @@
 							: createMessagesList(_history, responseMessageId),
 						_history,
 						responseMessageId,
-						_chatId
+						_chatId,
+						extraVariables
 					);
 
 					if (chatEventEmitter) clearInterval(chatEventEmitter);
@@ -1991,7 +2019,7 @@
 		return features;
 	};
 
-	const sendMessageSocket = async (model, _messages, _history, responseMessageId, _chatId) => {
+	const sendMessageSocket = async (model, _messages, _history, responseMessageId, _chatId, extraVariables = {}) => {
 		const responseMessage = _history.messages[responseMessageId];
 		const userMessage = _history.messages[responseMessage.parentId];
 
@@ -2043,12 +2071,11 @@
 			params?.stream_response ??
 			true;
 
+		const systemPrompt =
+			params?.system ?? model?.info?.params?.system ?? $settings?.system ?? '';
 		let messages = [
-			params?.system || $settings.system
-				? {
-						role: 'system',
-						content: `${params?.system ?? $settings?.system ?? ''}`
-					}
+			systemPrompt
+				? { role: 'system', content: systemPrompt }
 				: undefined,
 			..._messages.map((message) => ({
 				...message,
@@ -2179,7 +2206,8 @@
 						$user?.name,
 						$settings?.userLocation ? userLocation : undefined,
 						$user?.email
-					)
+					),
+					...extraVariables
 				},
 				model_item: $models.find((m) => m.id === model.id),
 
@@ -2333,6 +2361,8 @@
 	};
 
 	const submitMessage = async (parentId, prompt) => {
+		// Čtení schránky hned na začátku (user gesture při kliknutí na follow-up)
+		const clipboardPromise = navigator.clipboard.readText();
 		let userPrompt = prompt;
 		let userMessageId = uuidv4();
 
@@ -2362,7 +2392,16 @@
 			scrollToBottom();
 		}
 
-		await sendMessage(history, userMessageId);
+		let extraVariables = {};
+		try {
+			const txt = (await clipboardPromise) ?? '';
+			extraVariables = { '{{CLIPBOARD}}': txt };
+			console.log('[CLIPBOARD] submitMessage (follow-up) → backend, length:', txt.length);
+		} catch (e) {
+			extraVariables = { '{{CLIPBOARD}}': '' };
+			console.warn('[CLIPBOARD] submitMessage failed:', e);
+		}
+		await sendMessage(history, userMessageId, { extraVariables });
 	};
 
 	const regenerateResponse = async (message, suggestionPrompt = null) => {
@@ -2770,6 +2809,8 @@
 									{onUpload}
 									{messageQueue}
 									onQueueSendNow={async (id) => {
+										// Čtení schránky hned na začátku (user gesture při kliknutí)
+										const clipboardPromise = navigator.clipboard.readText();
 										const item = messageQueue.find((m) => m.id === id);
 										if (item) {
 											// Remove from queue
@@ -2780,7 +2821,16 @@
 											// Set files and submit
 											files = item.files;
 											await tick();
-											await submitPrompt(item.prompt);
+											let extraVariables = {};
+											try {
+												const txt = (await clipboardPromise) ?? '';
+												extraVariables = { '{{CLIPBOARD}}': txt };
+												console.log('[CLIPBOARD] onQueueSendNow → backend, length:', txt.length);
+											} catch (e) {
+												extraVariables = { '{{CLIPBOARD}}': '' };
+												console.warn('[CLIPBOARD] onQueueSendNow failed:', e);
+											}
+											await submitPrompt(item.prompt, { extraVariables });
 										}
 									}}
 									onQueueEdit={(id) => {
@@ -2805,8 +2855,10 @@
 										clearDraft();
 										if (e.detail || files.length > 0) {
 											await tick();
-
-											submitPrompt(e.detail.replaceAll('\n\n', '\n'));
+											const detail = e.detail;
+											const prompt = typeof detail === 'object' ? detail.prompt : detail;
+											const extraVariables = typeof detail === 'object' ? detail.extraVariables : {};
+											submitPrompt(prompt?.replaceAll?.('\n\n', '\n') ?? prompt, { extraVariables });
 										}
 									}}
 								/>
@@ -2848,7 +2900,10 @@
 										clearDraft();
 										if (e.detail || files.length > 0) {
 											await tick();
-											submitPrompt(e.detail.replaceAll('\n\n', '\n'));
+											const detail = e.detail;
+											const prompt = typeof detail === 'object' ? detail.prompt : detail;
+											const extraVariables = typeof detail === 'object' ? detail.extraVariables : {};
+											submitPrompt(prompt?.replaceAll?.('\n\n', '\n') ?? prompt, { extraVariables });
 										}
 									}}
 								/>

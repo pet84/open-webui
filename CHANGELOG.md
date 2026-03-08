@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.9] - 2026-02-14
+
+### Added
+
+- 📋 **Proměnná {{CLIPBOARD}} ve všech cestách odeslání.** Proměnná `{{CLIPBOARD}}` nyní funguje nejen při odeslání z hlavního pole (Enter/Odeslat), ale i při kliknutí na návrhy (Placeholder), follow-up otázky (Následná otázka), frontu zpráv (Send now) a další cesty. Obsah schránky se předává do systémového promptu modelu.
+- 🔍 **Debug logy pro {{CLIPBOARD}}.** V konzoli prohlížeče se zobrazují logy `[CLIPBOARD]` s cestou a délkou obsahu; na backendu log na úrovni debug.
+
+### Fixed
+
+- 🔧 **{{CLIPBOARD}} v systémovém promptu.** Opraveno nahrazení `{{CLIPBOARD}}` v systémovém promptu modelu (payload.py, middleware.py).
+
 ## [0.8.8] - 2026-03-02
 
 ### Added

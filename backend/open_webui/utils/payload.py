@@ -3,11 +3,27 @@ from open_webui.utils.misc import (
     deep_update,
     add_or_update_system_message,
     replace_system_message_content,
+    get_system_message,
 )
 
 from typing import Callable, Optional
 import copy
 import json
+
+
+def resolve_system_prompt(form_data: dict, model_id: str = None) -> Optional[str]:
+    """Resolve system prompt from request messages or model config."""
+    from open_webui.models.models import Models
+
+    messages = form_data.get("messages", [])
+    system_msg = get_system_message(messages)
+    if system_msg and system_msg.get("content"):
+        return system_msg.get("content")
+    if model_id:
+        model_info = Models.get_model_by_id(model_id)
+        if model_info and model_info.params and model_info.params.system:
+            return model_info.params.system
+    return None
 
 
 # inplace function: form_data is modified
