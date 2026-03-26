@@ -19,7 +19,7 @@ WebUI neběží Open Terminal uvnitř sebe; pouze volá jeho API. Proto je potř
 2. Pro nejjednodušší variantu:
    - **Settings** nové služby → **Source**:
      - Zvolte **Docker Image** (pokud Railway nabízí).
-     - Image: `ghcr.io/open-webui/open-terminal:latest`
+     - Image: `ghcr.io/open-webui/open-terminal:v0.11.30` (aktuální stabilní; `latest` také funguje)
    - Pokud Railway umí jen „Deploy from GitHub“:
      - Forkujte [open-webui/open-terminal](https://github.com/open-webui/open-terminal), připojte repo k Railway a nasaďte (build z Dockerfile).
 
@@ -95,7 +95,7 @@ Uživatelé pak v chatu uvidí terminál / prohlížeč souborů a budou moci po
 
 | Krok | Kde | Co |
 |------|-----|-----|
-| 1 | Railway | Nová služba z image `ghcr.io/open-webui/open-terminal` (nebo deploy z GitHubu). |
+| 1 | Railway | Nová služba z image `ghcr.io/open-webui/open-terminal:v0.11.30` (nebo deploy z GitHubu). |
 | 2 | Railway | Variable `OPEN_TERMINAL_API_KEY` (vygenerovat a uložit). |
 | 3 | Railway | Volume připojený na `/home/user`. |
 | 4 | Railway | Veřejná doména pro službu (port 8000). |
