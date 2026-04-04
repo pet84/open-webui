@@ -3,7 +3,9 @@
 #
 # Tajemství v repozitáři (Settings → Secrets → Actions):
 #   RAILWAY_TOKEN   — Project token z Railway (Integrations / Tokens), ne účetní token.
-#   RAILWAY_SERVICE — název služby v projektu (jako v Railway dashboardu), např. "open-webui"
+#   RAILWAY_SERVICE — přesný název služby NEBO Service ID (UUID z URL služby).
+#                     Canvas může zobrazovat jiný text než CLI — ověř v Service → Settings,
+#                     nebo použij ID z adresy .../service/<UUID>/...
 #
 # Volitelně: RAILWAY_ENVIRONMENT (např. production) — pokud máte víc prostředí.
 
@@ -22,6 +24,21 @@ jobs:
   redeploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: List project services (debug)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          set -e
+          if [ -z "${RAILWAY_TOKEN}" ]; then
+            echo "Missing RAILWAY_TOKEN."
+            exit 1
+          fi
+          echo "=== railway status --json (hledej přesný název/ID služby pro RAILWAY_SERVICE) ==="
+          railway status --json 2>&1 | head -c 12000 || true
+
       - name: Redeploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -33,7 +50,6 @@ jobs:
             echo "Missing RAILWAY_TOKEN or RAILWAY_SERVICE secret."
             exit 1
           fi
-          npm install -g @railway/cli
           if [ -n "${RAILWAY_ENV_NAME}" ]; then
             railway redeploy --service "${RAILWAY_SERVICE_NAME}" --environment "${RAILWAY_ENV_NAME}" --yes
           else
