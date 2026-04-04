@@ -1,0 +1,41 @@
+# Soft restart Open WebUI na Railway: redeploy posledního deploymentu (stejný kód).
+# Čas: jednou denně v noci (GitHub cron je v UTC — v ČR typicky kolem 3–4 h ráno podle letního času).
+#
+# Tajemství v repozitáři (Settings → Secrets → Actions):
+#   RAILWAY_TOKEN   — Project token z Railway (Integrations / Tokens), ne účetní token.
+#   RAILWAY_SERVICE — název služby v projektu (jako v Railway dashboardu), např. "open-webui"
+#
+# Volitelně: RAILWAY_ENVIRONMENT (např. production) — pokud máte víc prostředí.
+
+name: Railway nightly redeploy
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: railway-nightly-redeploy
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Redeploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_NAME: ${{ secrets.RAILWAY_SERVICE }}
+          RAILWAY_ENV_NAME: ${{ secrets.RAILWAY_ENVIRONMENT }}
+        run: |
+          set -e
+          if [ -z "${RAILWAY_TOKEN}" ] || [ -z "${RAILWAY_SERVICE_NAME}" ]; then
+            echo "Missing RAILWAY_TOKEN or RAILWAY_SERVICE secret."
+            exit 1
+          fi
+          npm install -g @railway/cli
+          if [ -n "${RAILWAY_ENV_NAME}" ]; then
+            railway redeploy --service "${RAILWAY_SERVICE_NAME}" --environment "${RAILWAY_ENV_NAME}" --yes
+          else
+            railway redeploy --service "${RAILWAY_SERVICE_NAME}" --yes
+          fi
