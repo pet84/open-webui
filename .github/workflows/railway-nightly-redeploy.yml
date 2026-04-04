@@ -7,7 +7,8 @@
 #                     Canvas může zobrazovat jiný text než CLI — ověř v Service → Settings,
 #                     nebo použij ID z adresy .../service/<UUID>/...
 #
-# Volitelně: RAILWAY_ENVIRONMENT (např. production) — pokud máte víc prostředí.
+# Volitelně: RAILWAY_ENVIRONMENT (např. staging). Pokud není nastaveno, použije se
+# výchozí production — bez --environment umí CLI u project tokenu hlásit „Service not found“.
 
 name: Railway nightly redeploy
 
@@ -50,8 +51,9 @@ jobs:
             echo "Missing RAILWAY_TOKEN or RAILWAY_SERVICE secret."
             exit 1
           fi
-          if [ -n "${RAILWAY_ENV_NAME}" ]; then
-            railway redeploy --service "${RAILWAY_SERVICE_NAME}" --environment "${RAILWAY_ENV_NAME}" --yes
-          else
-            railway redeploy --service "${RAILWAY_SERVICE_NAME}" --yes
-          fi
+          # Odstranění omylem zkopírovaných mezer/nových řádků ze secretu (častá příčina „not found“).
+          RAILWAY_SERVICE_NAME="$(printf '%s' "${RAILWAY_SERVICE_NAME}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+          ENV_NAME="${RAILWAY_ENV_NAME:-production}"
+          echo "Using environment: ${ENV_NAME} (set secret RAILWAY_ENVIRONMENT to override)"
+          echo "RAILWAY_SERVICE length: ${#RAILWAY_SERVICE_NAME} (UUID má obvykle 36 znaků)"
+          railway redeploy --service "${RAILWAY_SERVICE_NAME}" --environment "${ENV_NAME}" --yes
