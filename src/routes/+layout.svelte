@@ -9,6 +9,7 @@
 	});
 
 	import { onMount, tick, setContext, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import {
 		config,
 		user,
@@ -63,6 +64,7 @@
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL, WEBUI_HOSTNAME } from '$lib/constants';
 	import { bestMatchingLanguage, displayFileHandler } from '$lib/utils';
 	import { setTextScale } from '$lib/utils/text-scale';
+	import { injectUmami } from '$lib/utils/umami';
 
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
 	import AppSidebar from '$lib/components/app/AppSidebar.svelte';
@@ -973,6 +975,10 @@
 			await goto(`/error`);
 		}
 
+		if (backendConfig) {
+			await injectUmami(get(config)?.umami ?? {});
+		}
+
 		await tick();
 
 		if (
@@ -1032,15 +1038,6 @@
 <svelte:head>
 	<title>{$WEBUI_NAME}</title>
 	<link crossorigin="anonymous" rel="icon" href="{WEBUI_BASE_URL}/static/favicon.png" />
-	{#if $config?.umami?.website_id}
-		<script
-			async
-			defer
-			data-website-id={$config.umami.website_id}
-			data-host-url={$config?.umami?.host_url || undefined}
-			src={$config.umami.script_url || 'https://cdn.umami.is/script.js'}
-		></script>
-	{/if}
 
 	<meta name="apple-mobile-web-app-title" content={$WEBUI_NAME} />
 	<meta name="description" content={$WEBUI_NAME} />
