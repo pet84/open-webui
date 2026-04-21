@@ -191,7 +191,7 @@
 									class="text-[10px] text-gray-400 dark:text-gray-500 px-1 mt-auto hover:text-gray-700 dark:hover:text-gray-200 text-left w-full truncate z-10"
 									on:click|stopPropagation={() => goToDayView(day)}
 								>
-									+{dayEvents.length - 3} more
+									{$i18n.t('+{{COUNT}} more', { COUNT: dayEvents.length - 3 })}
 								</div>
 							{/if}
 						</div>
@@ -219,7 +219,7 @@
 										: ''}"
 								>
 									<div class="text-[11px] text-gray-400 dark:text-gray-500">
-										{DAY_NAMES[day.getDay()]}
+										{$i18n.t(DAY_NAMES[day.getDay()])}
 									</div>
 									<div
 										class="text-sm mt-0.5 w-7 h-7 flex items-center justify-center mx-auto rounded-full {isToday(

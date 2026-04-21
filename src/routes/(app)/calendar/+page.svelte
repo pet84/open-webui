@@ -185,8 +185,8 @@
 
 	$: headerText =
 		view === 'day'
-			? `${DAY_NAMES[currentDate.getDay()]}, ${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`
-			: `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+			? `${$i18n.t(DAY_NAMES[currentDate.getDay()])}, ${$i18n.t(MONTH_NAMES[currentDate.getMonth()])} ${currentDate.getDate()}, ${currentDate.getFullYear()}`
+			: `${$i18n.t(MONTH_NAMES[currentDate.getMonth()])} ${currentDate.getFullYear()}`;
 
 	onMount(async () => {
 		await loadCalendars();

@@ -7,9 +7,42 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Dict
 
 
+def iframe_embedding_enabled() -> bool:
+    """When true, do not send X-Frame-Options: DENY and relax CSP for iframe embedding."""
+    v = os.environ.get("ENABLE_IFRAME_EMBEDDING", "").lower().strip()
+    return v in ("true", "1", "yes")
+
+
+def _csp_allow_iframe_embedding(csp: str) -> str:
+    """
+    Ensure CSP allows embedding in iframes. Appends frame-ancestors * if missing;
+    replaces frame-ancestors 'none' with *.
+    """
+    if not csp or not csp.strip():
+        return "frame-ancestors *"
+    if not re.search(r"\bframe-ancestors\b", csp, re.IGNORECASE):
+        csp = csp.rstrip()
+        if not csp.endswith(";"):
+            csp += ";"
+        return csp + " frame-ancestors *"
+    # Relax only explicit 'none' (common copy-paste default that blocks all framing)
+    if re.search(r"frame-ancestors\s+['\"]?none['\"]?", csp, re.IGNORECASE):
+        return re.sub(
+            r"frame-ancestors\s+['\"]?none['\"]?",
+            "frame-ancestors *",
+            csp,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    return csp
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
+        if iframe_embedding_enabled():
+            # Allow embedding in cross-origin iframes (overrides any earlier X-Frame-Options on this response)
+            response.headers.pop("X-Frame-Options", None)
         response.headers.update(set_security_headers())
         return response
 
@@ -39,6 +72,10 @@ def set_security_headers() -> Dict[str, str]:
     that constructs the header. If the environment variable is set, the
     corresponding header is added to the options dictionary.
 
+    ENABLE_IFRAME_EMBEDDING=true: skips XFRAME_OPTIONS, strips X-Frame-Options on the
+    response, and relaxes CSP (frame-ancestors) when CONTENT_SECURITY_POLICY is set.
+    Reverse proxies may still add framing headers.
+
     Returns:
         dict: A dictionary containing the security headers and their values.
     """
@@ -61,6 +98,8 @@ def set_security_headers() -> Dict[str, str]:
     }
 
     for env_var, setter in header_setters.items():
+        if iframe_embedding_enabled() and env_var == "XFRAME_OPTIONS":
+            continue
         value = os.environ.get(env_var, None)
         if value:
             header = setter(value)
@@ -192,11 +231,15 @@ def set_content_security_policy(value: str):
                     value += f" connect-src 'self' {origin}"
         except Exception:
             pass  # Keep original CSP on any error
+    if iframe_embedding_enabled():
+        value = _csp_allow_iframe_embedding(value)
     return {"Content-Security-Policy": value}
 
 
 # Set Content-Security-Policy-Report-Only response header
 def set_content_security_policy_report_only(value: str):
+    if iframe_embedding_enabled():
+        value = _csp_allow_iframe_embedding(value)
     return {'Content-Security-Policy-Report-Only': value}
 
 
