@@ -564,16 +564,25 @@ WEBUI_SECRET_KEY = os.environ.get(
     os.environ.get('WEBUI_JWT_SECRET_KEY', 't0p-s3cr3t'),  # DEPRECATED: remove at next major version
 )
 
-WEBUI_SESSION_COOKIE_SAME_SITE = os.environ.get('WEBUI_SESSION_COOKIE_SAME_SITE', 'lax')
+# When iframe embedding is enabled, cookies must be SameSite=None + Secure so
+# that the browser sends them in a cross-origin iframe (e.g. a Chrome extension
+# sidepanel embedding this UI). Without this, the app loads but login/session
+# calls return empty → user is stuck on splash/login screen. Users can still
+# override these explicitly via env vars.
+_ENABLE_IFRAME_EMBEDDING = os.environ.get('ENABLE_IFRAME_EMBEDDING', '').lower().strip() in ('true', '1', 'yes')
+_IFRAME_COOKIE_SAME_SITE_DEFAULT = 'none' if _ENABLE_IFRAME_EMBEDDING else 'lax'
+_IFRAME_COOKIE_SECURE_DEFAULT = 'true' if _ENABLE_IFRAME_EMBEDDING else 'false'
 
-WEBUI_SESSION_COOKIE_SECURE = os.environ.get('WEBUI_SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+WEBUI_SESSION_COOKIE_SAME_SITE = os.environ.get('WEBUI_SESSION_COOKIE_SAME_SITE', _IFRAME_COOKIE_SAME_SITE_DEFAULT)
+
+WEBUI_SESSION_COOKIE_SECURE = os.environ.get('WEBUI_SESSION_COOKIE_SECURE', _IFRAME_COOKIE_SECURE_DEFAULT).lower() == 'true'
 
 WEBUI_AUTH_COOKIE_SAME_SITE = os.environ.get('WEBUI_AUTH_COOKIE_SAME_SITE', WEBUI_SESSION_COOKIE_SAME_SITE)
 
 WEBUI_AUTH_COOKIE_SECURE = (
     os.environ.get(
         'WEBUI_AUTH_COOKIE_SECURE',
-        os.environ.get('WEBUI_SESSION_COOKIE_SECURE', 'false'),
+        os.environ.get('WEBUI_SESSION_COOKIE_SECURE', _IFRAME_COOKIE_SECURE_DEFAULT),
     ).lower()
     == 'true'
 )
