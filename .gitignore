@@ -8,6 +8,9 @@ node_modules
 .env
 .env.*
 !.env.example
+# Lokální zálohy (DB / volume archivy — necommitovat)
+/backups/
+
 # Klíče a lokální konfigurace ve složce local/
 local/.env
 vite.config.js.timestamp-*
