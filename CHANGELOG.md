@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-04-04
+
+### Added
+
+- **Railway nightly redeploy (GitHub Actions).** Scheduled workflow (`0 2 * * *` UTC) and manual dispatch to soft-restart the app on Railway via `railway redeploy`, plus optional `railway status --json` debug listing for service name/ID verification.
+
+### Changed
+
+- **CI:** Railway `redeploy` uses current `@railway/cli` syntax (`--service` and `--yes` only); `RAILWAY_ENVIRONMENT` is passed as an environment variable instead of the unsupported `--environment` flag.
+- **Fork branding:** When `WEBUI_NAME` is set, the UI no longer appends “(Open WebUI)” to the custom name.
+
+### Fixed
+
+- **Umami analytics:** Load the tracker script so `document.currentScript` works correctly in the SPA.
+
 ## [0.8.12] - 2026-03-26
 
 ### Added
