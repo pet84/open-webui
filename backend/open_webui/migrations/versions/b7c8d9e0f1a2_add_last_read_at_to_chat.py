@@ -17,11 +17,22 @@ branch_labels = None
 depends_on = None
 
 
+def _chat_column_names(conn) -> set[str]:
+    insp = sa.inspect(conn)
+    return {c['name'] for c in insp.get_columns('chat')}
+
+
 def upgrade():
-    op.add_column('chat', sa.Column('last_read_at', sa.BigInteger(), nullable=True))
-    # Set existing chats to be marked as read
-    op.execute('UPDATE chat SET last_read_at = updated_at')
+    conn = op.get_bind()
+    cols = _chat_column_names(conn)
+    if 'last_read_at' not in cols:
+        op.add_column('chat', sa.Column('last_read_at', sa.BigInteger(), nullable=True))
+    # Mark existing chats as read where still null (fresh or existing column)
+    op.execute('UPDATE chat SET last_read_at = updated_at WHERE last_read_at IS NULL')
 
 
 def downgrade():
-    op.drop_column('chat', 'last_read_at')
+    conn = op.get_bind()
+    cols = _chat_column_names(conn)
+    if 'last_read_at' in cols:
+        op.drop_column('chat', 'last_read_at')
