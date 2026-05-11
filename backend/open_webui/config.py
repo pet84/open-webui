@@ -1226,6 +1226,11 @@ TERMINAL_SERVER_CONNECTIONS = PersistentConfig(
     terminal_server_connections,
 )
 
+try:
+    TERMINAL_PROXY_HEADERS = json.loads(os.environ.get('TERMINAL_PROXY_HEADERS', '{}'))
+except Exception:
+    TERMINAL_PROXY_HEADERS = {}
+
 ####################################
 # WEBUI
 ####################################
@@ -1384,6 +1389,7 @@ UMAMI_SCRIPT_URL = (
     else "https://cdn.umami.is/script.js"
 )
 
+IFRAME_CSP = os.environ.get('IFRAME_CSP', '')
 
 USER_PERMISSIONS_WORKSPACE_MODELS_ACCESS = (
     os.environ.get('USER_PERMISSIONS_WORKSPACE_MODELS_ACCESS', 'False').lower() == 'true'
@@ -1476,6 +1482,10 @@ USER_PERMISSIONS_NOTES_ALLOW_SHARING = os.environ.get('USER_PERMISSIONS_NOTES_AL
 
 USER_PERMISSIONS_NOTES_ALLOW_PUBLIC_SHARING = (
     os.environ.get('USER_PERMISSIONS_NOTES_ALLOW_PUBLIC_SHARING', 'False').lower() == 'true'
+)
+
+USER_PERMISSIONS_CALENDAR_ALLOW_PUBLIC_SHARING = (
+    os.environ.get('USER_PERMISSIONS_CALENDAR_ALLOW_PUBLIC_SHARING', 'False').lower() == 'true'
 )
 
 USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_USERS = (
@@ -1598,6 +1608,7 @@ DEFAULT_USER_PERMISSIONS = {
         'notes': USER_PERMISSIONS_NOTES_ALLOW_SHARING,
         'public_notes': USER_PERMISSIONS_NOTES_ALLOW_PUBLIC_SHARING,
         'public_chats': USER_PERMISSIONS_CHAT_ALLOW_PUBLIC_SHARING,
+        'public_calendars': USER_PERMISSIONS_CALENDAR_ALLOW_PUBLIC_SHARING,
     },
     'access_grants': {
         'allow_users': USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_USERS,
