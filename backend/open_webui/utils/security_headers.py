@@ -1,10 +1,10 @@
-import re
 import os
+import re
+from typing import Dict
 from urllib.parse import urlparse
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict
 
 
 def iframe_embedding_enabled() -> bool:

@@ -6,9 +6,8 @@ Create Date: 2026-04-01 04:00:00.000000
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'b7c8d9e0f1a2'
@@ -27,7 +26,7 @@ def upgrade():
     cols = _chat_column_names(conn)
     if 'last_read_at' not in cols:
         op.add_column('chat', sa.Column('last_read_at', sa.BigInteger(), nullable=True))
-    # Mark existing chats as read where still null (fresh or existing column)
+    # Mark existing chats as read where still null (fresh add OR pre-existing column with null values)
     op.execute('UPDATE chat SET last_read_at = updated_at WHERE last_read_at IS NULL')
 
 
