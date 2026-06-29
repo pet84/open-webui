@@ -318,3 +318,5 @@ cypress/screenshots
 
 # Internal notes with sensitive information
 INTERNAL_NOTES.md
+
+.cptr
