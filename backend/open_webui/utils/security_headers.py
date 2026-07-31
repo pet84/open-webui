@@ -3,8 +3,8 @@ import re
 from typing import Dict
 from urllib.parse import urlparse
 
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 def iframe_embedding_enabled() -> bool:
@@ -37,14 +37,38 @@ def _csp_allow_iframe_embedding(csp: str) -> str:
     return csp
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        if iframe_embedding_enabled():
-            # Allow embedding in cross-origin iframes (overrides any earlier X-Frame-Options on this response)
-            response.headers.pop("X-Frame-Options", None)
-        response.headers.update(set_security_headers())
-        return response
+class SecurityHeadersMiddleware:
+    """Apply configured security headers to every HTTP response.
+
+    Pure ASGI to avoid BaseHTTPMiddleware's response re-buffering. See
+    open_webui.utils.asgi_middleware for the rationale.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+        # Headers derive only from env vars, which are static for the process
+        # lifetime — compute them once instead of per response.
+        self._headers = list(set_security_headers().items())
+        # Fork patch: when iframe embedding is enabled, strip any X-Frame-Options
+        # set earlier in the response chain (set_security_headers already skips
+        # emitting its own). Env-derived, so evaluate once like _headers.
+        self._strip_xframe = iframe_embedding_enabled()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http' or not (self._headers or self._strip_xframe):
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_security_headers(message: Message) -> None:
+            if message['type'] == 'http.response.start':
+                headers = MutableHeaders(scope=message)
+                if self._strip_xframe:
+                    del headers['X-Frame-Options']
+                for key, value in self._headers:
+                    headers[key] = value
+            await send(message)
+
+        await self.app(scope, receive, send_with_security_headers)
 
 
 def set_security_headers() -> Dict[str, str]:
