@@ -544,28 +544,13 @@
 					</div>
 					<div class=" self-center truncate">{$i18n.t('Admin Panel')}</div>
 				</a>
-				<a
-					href="/admin/settings"
-					draggable="false"
-					class="flex rounded-xl py-1.5 px-3 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer select-none"
-					on:click={async (e) => {
-						if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) {
-							return;
-						}
-						e.preventDefault();
-						show = false;
-						goto('/admin/settings');
-						if ($mobile) {
-							await tick();
-							showSidebar.set(false);
-						}
-					}}
-				>
-					<div class=" self-center mr-3">
-						<Settings className="w-5 h-5" strokeWidth="1.5" />
-					</div>
-					<div class=" self-center truncate">{$i18n.t('Admin Settings')}</div>
-				</a>
+				<!--
+					Fork patch (pet84 / Airis): odstraněna položka "Admin Settings" (/admin/settings).
+					Po redesignu v0.11.0 má admin sekce záložky (Uživatelé / Hodnocení / Funkce / Nastavení),
+					takže "Administrace" (/admin → /admin/users) vede na tutéž stránku a Nastavení je odsud
+					jeden klik. Dvě skoro shodné položky s ikonou ozubeného kola hned nad "Nastavení"
+					(uživatelským) byly matoucí. Upstream tuto položku má; při merge ji znovu odstranit.
+				-->
 			{/if}
 
 			<button
