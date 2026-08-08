@@ -40,7 +40,7 @@ jobs:
           echo "=== railway status --json (hledej přesný název/ID služby pro RAILWAY_SERVICE) ==="
           railway status --json 2>&1 | head -c 12000 || true
 
-      - name: Redeploy
+      - name: Restart (bez rebuildu)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE_NAME: ${{ secrets.RAILWAY_SERVICE }}
@@ -56,4 +56,8 @@ jobs:
           export RAILWAY_ENVIRONMENT="${RAILWAY_ENVIRONMENT:-production}"
           echo "RAILWAY_ENVIRONMENT=${RAILWAY_ENVIRONMENT} (nastav secret RAILWAY_ENVIRONMENT pro jiné prostředí)"
           echo "RAILWAY_SERVICE length: ${#RAILWAY_SERVICE_NAME} (UUID má obvykle 36 znaků)"
-          railway redeploy --service "${RAILWAY_SERVICE_NAME}" --yes
+          # POZOR: `redeploy` spouští KOMPLETNÍ rebuild image (npm ci + npm run build + pip install torch),
+          # trvá 10+ min a občas selhal → Railway posílal e-maily "Build failed" (2026-08-08).
+          # Pro noční soft restart stačí `restart`: restartuje běžící deployment BEZ rebuildu,
+          # uvolní paměť během sekund a nemůže spadnout na buildu.
+          railway restart --service "${RAILWAY_SERVICE_NAME}" --yes
