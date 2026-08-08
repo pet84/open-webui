@@ -28,7 +28,10 @@ FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS build
 ARG BUILD_HASH
 
 # Set Node.js options (heap limit Allocation failed - JavaScript heap out of memory)
-# ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Fork patch: od v0.11.0 (redesign UI) padal `npm run build` na Railway na
+# "FATAL ERROR: Ineffective mark-compacts near heap limit / JavaScript heap out of memory".
+# Výchozí heap Node.js na frontend v0.11.0 nestačí → zvýšeno na 4 GB.
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 WORKDIR /app
 
