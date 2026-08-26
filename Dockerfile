@@ -31,7 +31,7 @@ ARG BUILD_HASH
 # Fork patch: od v0.11.0 (redesign UI) padal `npm run build` na Railway na
 # "FATAL ERROR: Ineffective mark-compacts near heap limit / JavaScript heap out of memory".
 # Výchozí heap Node.js na frontend v0.11.0 nestačí → zvýšeno na 4 GB.
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=6144"
 
 WORKDIR /app
 
