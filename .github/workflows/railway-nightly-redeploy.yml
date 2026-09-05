@@ -60,4 +60,21 @@ jobs:
           # trvá 10+ min a občas selhal → Railway posílal e-maily "Build failed" (2026-08-08).
           # Pro noční soft restart stačí `restart`: restartuje běžící deployment BEZ rebuildu,
           # uvolní paměť během sekund a nemůže spadnout na buildu.
-          railway restart --service "${RAILWAY_SERVICE_NAME}" --yes
+          # POZOR: `railway restart` sám restart odešle během sekund, ale pak v CLI v5
+          # čeká na ustálení deploymentu a v neinteraktivním běhu (bez TTY) se zasekne.
+          # Běhy proto trvaly 22 min až 3 h 51 min (2026-09-05 konkrétně 1 h 35 min),
+          # což maskuje skutečné chyby a při delším viset by se noční běhy řadily za sebe.
+          # Řešení: ohraničit časovým limitem. Kód 124 = timeout = restart proběhl, jen
+          # CLI dál čekalo; jakýkoli jiný nenulový kód je skutečná chyba.
+          set +e
+          timeout 120 railway restart --service "${RAILWAY_SERVICE_NAME}" --yes
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            echo "Restart dokončen."
+          elif [ "$rc" -eq 124 ]; then
+            echo "Restart odeslán; CLI po něm jen čekalo na ustálení, ukončeno po 120 s."
+          else
+            echo "railway restart selhal (kód $rc)."
+            exit "$rc"
+          fi
