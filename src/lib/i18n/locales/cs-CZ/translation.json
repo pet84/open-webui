@@ -243,6 +243,7 @@
   "Analyzed": "Analyzováno",
   "Analyzing...": "Analyzuji...",
   "and {{COUNT}} more": "a {{COUNT}} dalších",
+  "+{{COUNT}} more": "+{{COUNT}} dalších",
   "and create a new shared link.": "a vytvořit nový sdílený odkaz.",
   "Android": "Android",
   "Anyone": "",
