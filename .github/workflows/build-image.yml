@@ -1,0 +1,77 @@
+# Postaví obraz našeho forku a uloží ho do GitHub Container Registry.
+#
+# PROČ: frontend Open WebUI potřebuje na build ~6 GB paměti (ENV NODE_OPTIONS
+# v Dockerfile). Náš server u Forpsi má 4 GB, takže se tam stavět nedá —
+# běhouni GitHub Actions mají 16 GB a build je zdarma (repo je veřejné).
+# Server pak jen stáhne hotový obraz (`docker pull`), což trvá sekundy.
+#
+# Výsledek: ghcr.io/pet84/open-webui:latest a :<verze z package.json>
+# Coolify je nastavený na `latest` a po každém úspěšném buildu si ho vyzvedne.
+
+name: Build image → ghcr.io
+
+on:
+  push:
+    branches: [main]
+    # Dokumentace a poznámky nemají spouštět build.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/workflows/railway-nightly-redeploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-image
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Zjistit verzi z package.json
+        id: verze
+        run: echo "v=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Přihlásit se do ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build a push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Jen amd64 — server u Forpsi je x86. ARM by build zdvojnásobil.
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/pet84/open-webui:latest
+            ghcr.io/pet84/open-webui:${{ steps.verze.outputs.v }}
+            ghcr.io/pet84/open-webui:${{ github.sha }}
+          # Cache mezi běhy — druhý build je výrazně rychlejší než první.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            USE_CUDA=false
+            USE_OLLAMA=false
+
+      - name: Shrnutí
+        run: |
+          echo "### Obraz postaven" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "ghcr.io/pet84/open-webui:latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "ghcr.io/pet84/open-webui:${{ steps.verze.outputs.v }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
