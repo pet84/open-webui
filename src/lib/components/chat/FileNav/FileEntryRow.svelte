@@ -361,7 +361,7 @@
 							strokeWidth={1.4}
 						/>
 						<div class="flex items-center">
-							{entry.type === 'directory' ? $i18n.t('Open Folder') : $i18n.t('Open')}
+							{entry.type === 'directory' ? $i18n.t('Open Folder') : $i18n.t('Open file')}
 						</div>
 					</button>
 

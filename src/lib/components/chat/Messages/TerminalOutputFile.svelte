@@ -268,7 +268,7 @@
 			class="mr-1 flex size-6 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:text-gray-700 disabled:opacity-40 disabled:hover:text-gray-400 dark:text-gray-500 dark:hover:text-gray-200 dark:disabled:hover:text-gray-500"
 			disabled={unavailable}
 			on:click|stopPropagation={openInFiles}
-			aria-label={t('Open')}
+			aria-label={t('Open file')}
 		>
 			<Icon name="external-link" size={13} />
 		</button>
