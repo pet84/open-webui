@@ -51,6 +51,7 @@ dependencies = [
     "tiktoken==0.13.0",
     "regex==2026.5.9",
     "google-re2==1.1.20251105",
+    "google-genai==1.66.0", # fork patch: Google pipe funkce v Airisu
     "mcp==1.27.2",
 
     "openai==2.29.0",

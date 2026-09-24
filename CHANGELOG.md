@@ -264,6 +264,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fork patche ověřeny beze změny: Node heap 6144 v `Dockerfile` (upstream svůj `NODE_OPTIONS` zakomentoval — náš zůstává), iframe embedding (`env.py`, `security_headers.py`), Umami (`config.py`, `main.py`), `$i18n.t()` v kalendáři, `UserMenu.svelte` bez „Admin Settings", vlastní favicony, vypnuté upstream CI workflows.
 - Obraz se dál staví bez `USE_SLIM` (standardní obraz; upstream ho zmenšil o ~170 MB).
 
+#### Fixed
+
+- **Vrácen balík `google-genai==1.66.0`** (`backend/requirements.txt`, `pyproject.toml`). Upstream 0.11.4 ho z obrazu vyhodil jako nepoužívaný, ale šest pipe funkcí Airisu (Google Gemini Pipeline, Google Notebook, NZÚ boty) ho importuje — po prvním nasazení 0.11.4 se při startu všechny samy deaktivovaly (`cannot import name 'genai' from 'google'`). Po opravě je nutné funkce v Administraci → Funkce znovu zapnout.
+
 ## [0.11.3] - 2026-08-31
 
 ### Fork (pet84 / Airis)
