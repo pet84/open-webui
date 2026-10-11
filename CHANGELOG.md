@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cs-CZ: sloučeno s upstream (3910 klíčů), 184 nových textů přeloženo, terminologie forku zachována (100 %).
 - `google-genai==1.66.0` dál v `backend/requirements.txt` (pipe funkce Google).
 - Fork patche beze změny: iframe cookies/CSP, Umami, CalendarSidebar i18n, UserMenu bez "Admin Settings", `NODE_OPTIONS` v Dockerfile.
+- Oprava hlasového avatara: postavy VRM 0.x (většina z VRoid Hubu) stály s rukama nahoře — vestavěná póza teď převádí osy jako three-vrm-animation (`voice-avatar-renderer.ts`).
 
 ### Added
 
