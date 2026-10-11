@@ -55,6 +55,14 @@ export async function createAvatarRenderer(
 	renderer.setClearColor(0x000000, 0);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+	// Fork patch (pet84 / Airis): VRM 0.x normalized bones are mirrored around Y, so the
+	// built-in pose (authored for VRM 1.0) must negate x/z like three-vrm-animation does
+	// for metaVersion '0'. Without it VRM 0.x avatars raise their arms instead of lowering them.
+	const vrm0 = vrm.meta.metaVersion === '0';
+	const mirror = (q: THREE.Quaternion) => {
+		if (vrm0) q.set(-q.x, q.y, -q.z, q.w);
+		return q;
+	};
 	const bone = (name: Parameters<typeof vrm.humanoid.getNormalizedBoneNode>[0]) =>
 		vrm.humanoid.getNormalizedBoneNode(name);
 	const head = bone('head');
@@ -120,6 +128,7 @@ export async function createAvatarRenderer(
 			}
 		}
 	}
+	for (const { node } of Object.values(vrm.humanoid.normalizedHumanBones)) mirror(node.quaternion);
 	// Pose once over the supporting leg, solving the knees back to the original
 	// foot contacts. Breathing never moves the pelvis or feet after this setup.
 	if (hips && legs.length === 2) {
@@ -303,8 +312,9 @@ export async function createAvatarRenderer(
 			bodyWeight = THREE.MathUtils.clamp(bodyWeight + (authored ? dt : -dt) / 0.3, 0, 1);
 			if (!enabled) bodyWeight = 0;
 			// Start the procedural pose from rest, never from last frame's authored pose.
+			// Procedural deltas below are VRM 1.0 axes; mirror in, then back out for VRM 0.x.
 			for (const pose of poses) {
-				pose.node.quaternion.copy(pose.restQ);
+				mirror(pose.node.quaternion.copy(pose.restQ));
 				pose.node.position.copy(pose.restP);
 			}
 			const rect = canvas.getBoundingClientRect();
@@ -347,6 +357,7 @@ export async function createAvatarRenderer(
 			if (rightArm) rightArm.rotation.z -= amount * 0.003 * Math.sin(elapsed * 1.1 - 0.2);
 			if (leftElbow) leftElbow.rotation.y -= amount * 0.006 * Math.sin(elapsed * 1.1 - 0.3);
 			if (rightElbow) rightElbow.rotation.y += amount * 0.004 * Math.sin(elapsed * 1.1 - 0.5);
+			for (const pose of poses) mirror(pose.node.quaternion);
 			if (current && (bodyWeight > 0 || authored)) {
 				for (const pose of poses) {
 					pose.q.copy(pose.node.quaternion);
