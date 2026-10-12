@@ -3639,7 +3639,9 @@ async def create_skill(
     id: str,
     name: str,
     content: str,
-    files: list[SkillFile] = None,
+    # Fork: list[dict] místo list[SkillFile] — google-genai (Gemini pipeline) neumí parsovat
+    # list[Pydantic model] a shodí celý dotaz. Dicty se validují v Skills/create_new_skill.
+    files: list[dict] = None,
     commit_message: str = None,
     __request__: Request = None,
     __user__: dict = None,
@@ -3692,7 +3694,8 @@ async def create_skill(
 
 async def update_skill_files(
     id: str,
-    operations: list[SkillFileOperation],
+    # Fork: list[dict] místo list[SkillFileOperation] — viz create_skill (Gemini pipeline).
+    operations: list[dict],
     commit_message: str = None,
     __request__: Request = None,
     __user__: dict = None,
