@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fork patche beze změny: iframe cookies/CSP, Umami, CalendarSidebar i18n, UserMenu bez "Admin Settings", `NODE_OPTIONS` v Dockerfile.
 - Oprava hlasového avatara: postavy VRM 0.x (většina z VRoid Hubu) stály s rukama nahoře — vestavěná póza teď převádí osy jako three-vrm-animation (`voice-avatar-renderer.ts`).
 - Oprava Google pipeline agentů (NZÚ boty, Google Notebook, Gemini): nové vestavěné nástroje `create_skill` a `update_skill_files` měly parametr typu `list[Pydantic model]`, který google-genai neumí převést → každá odpověď končila „Failed to parse the parameter operations". Parametry jsou teď `list[dict]` (validace zůstává v `Skills`).
+- Nový vlastní parametr agenta `cached_context` (`{"url": …, "prefix": …}`): znalostní báze z URL se vloží úplně na začátek system promptu, u Claude přes OpenRouter se značkou `cache_control` (cache 5 min → opakované dotazy za ~desetinu). Řešeno v routeru (`utils/cached_context.py`), protože filtry a middleware přidávají text (datum s časem, paměť) na začátek systémové zprávy a slévají ji do řetězce. Pro NZÚ agenty na Claude Haiku.
 
 ### Added
 

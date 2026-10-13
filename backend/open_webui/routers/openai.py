@@ -40,6 +40,7 @@ from open_webui.models.users import UserModel
 from open_webui.utils.access_control import check_model_access, has_connection_access, has_permission
 from open_webui.utils.anthropic import ANTHROPIC_VERSION, get_anthropic_models, is_anthropic_url
 from open_webui.utils.auth import get_admin_user, get_verified_user
+from open_webui.utils.cached_context import apply_cached_context
 from open_webui.utils.headers import get_headers_and_cookies, include_user_info_headers
 from open_webui.utils.json_codec import JSONCodec
 from open_webui.utils.misc import convert_logit_bias_input_to_json
@@ -1475,6 +1476,12 @@ async def generate_chat_completion(
 
     prefix_id = api_config.get('prefix_id', None)
     payload['model'] = strip_provider_model_prefix(payload['model'], prefix_id)
+
+    # Fork (Airis): znalostní báze z URL na začátek system promptu se značkou cache (utils/cached_context.py)
+    try:
+        payload = await apply_cached_context(payload, url)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
     # Add user info to the payload if the model is a pipeline
     if 'pipeline' in model and model.get('pipeline'):
