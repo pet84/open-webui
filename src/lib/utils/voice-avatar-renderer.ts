@@ -55,16 +55,9 @@ export async function createAvatarRenderer(
 	renderer.setClearColor(0x000000, 0);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
-	// Fork patch (pet84 / Airis): VRM 0.x normalized bones are mirrored around Y, so the
-	// built-in pose (authored for VRM 1.0) must negate x/z like three-vrm-animation does
-	// for metaVersion '0'. Without it VRM 0.x avatars raise their arms instead of lowering them.
-	const vrm0 = vrm.meta.metaVersion === '0';
-	const mirror = (q: THREE.Quaternion) => {
-		if (vrm0) q.set(-q.x, q.y, -q.z, q.w);
-		return q;
-	};
 	const bone = (name: Parameters<typeof vrm.humanoid.getNormalizedBoneNode>[0]) =>
 		vrm.humanoid.getNormalizedBoneNode(name);
+	const mirror = vrm.meta.metaVersion === '0' ? -1 : 1;
 	const head = bone('head');
 	const spine = bone('spine');
 	const chest = bone('chest') ?? bone('upperChest');
@@ -90,7 +83,6 @@ export async function createAvatarRenderer(
 		];
 	});
 	// Start all built-in states from a relaxed, slightly asymmetric stance.
-	// Normalized VRM bones share T-pose axes across VRM 0 and 1.
 	const restingRotations: Partial<Record<Parameters<typeof bone>[0], [number, number, number]>> = {
 		hips: [0, 0, 0.025],
 		spine: [0.025, 0.015, -0.035],
@@ -112,7 +104,11 @@ export async function createAvatarRenderer(
 		rightFoot: [-0.045, -0.035, 0.025]
 	};
 	for (const [name, rotation] of Object.entries(restingRotations))
-		bone(name as Parameters<typeof bone>[0])?.rotation.set(...rotation);
+		bone(name as Parameters<typeof bone>[0])?.rotation.set(
+			rotation[0] * mirror,
+			rotation[1],
+			rotation[2] * mirror
+		);
 	// Resting fingers curl mainly at the first two joints, with a softer index finger.
 	for (const side of ['left', 'right'] as const) {
 		const sign = side === 'left' ? -1 : 1;
@@ -124,11 +120,10 @@ export async function createAvatarRenderer(
 				['Distal', 0.04]
 			] as const) {
 				const node = bone(`${side}${finger}${joint}`);
-				if (node) node.rotation.z = sign * amount;
+				if (node) node.rotation.z = sign * amount * mirror;
 			}
 		}
 	}
-	for (const { node } of Object.values(vrm.humanoid.normalizedHumanBones)) mirror(node.quaternion);
 	// Pose once over the supporting leg, solving the knees back to the original
 	// foot contacts. Breathing never moves the pelvis or feet after this setup.
 	if (hips && legs.length === 2) {
@@ -224,6 +219,11 @@ export async function createAvatarRenderer(
 		gestureElapsed = 0;
 	let enabled = true;
 	let cameraDistance = 0;
+	let yaw = 0,
+		pitch = 0,
+		spin = 0,
+		zoom = 1;
+	const pan = new THREE.Vector2();
 	const switchClip = (clip: THREE.AnimationClip, once: boolean) => {
 		if (outgoing) {
 			outgoing.stop();
@@ -287,6 +287,30 @@ export async function createAvatarRenderer(
 			return 'started' as const;
 		},
 		cancelGesture,
+		rotateView(dx: number, dy: number) {
+			const scale = (2 * Math.PI) / Math.max(height, 1);
+			yaw -= dx * scale;
+			pitch = THREE.MathUtils.clamp(pitch + dy * scale, -1.3, 1.3);
+			spin = 0;
+		},
+		spinView(velocity: number) {
+			spin = (-velocity * 2 * Math.PI) / Math.max(height, 1);
+		},
+		panView(dx: number, dy: number) {
+			const scale =
+				(2 * cameraDistance * zoom * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) /
+				Math.max(height, 1);
+			pan.x -= dx * scale;
+			pan.y += dy * scale;
+		},
+		zoomView(scale: number) {
+			zoom = THREE.MathUtils.clamp(zoom * scale, 0.3, 3);
+		},
+		resetView() {
+			yaw = pitch = spin = 0;
+			zoom = 1;
+			pan.set(0, 0);
+		},
 		render(delta: number, config: VoiceAvatarConfig, input: AvatarSignals, reducedMotion: boolean) {
 			const dt = Math.min(delta, 0.05);
 			elapsed += dt;
@@ -312,9 +336,8 @@ export async function createAvatarRenderer(
 			bodyWeight = THREE.MathUtils.clamp(bodyWeight + (authored ? dt : -dt) / 0.3, 0, 1);
 			if (!enabled) bodyWeight = 0;
 			// Start the procedural pose from rest, never from last frame's authored pose.
-			// Procedural deltas below are VRM 1.0 axes; mirror in, then back out for VRM 0.x.
 			for (const pose of poses) {
-				mirror(pose.node.quaternion.copy(pose.restQ));
+				pose.node.quaternion.copy(pose.restQ);
 				pose.node.position.copy(pose.restP);
 			}
 			const rect = canvas.getBoundingClientRect();
@@ -336,28 +359,28 @@ export async function createAvatarRenderer(
 			const breath = Math.sin(elapsed * 1.1) * 0.9 + Math.sin(elapsed * 0.47) * 0.1;
 			const sway = amount * (0.01 * Math.sin(elapsed * 0.43) + 0.003 * Math.sin(elapsed * 0.71));
 			if (spine) {
-				spine.rotation.x += amount * (0.006 * breath + 0.015 * listening);
+				spine.rotation.x += mirror * amount * (0.006 * breath + 0.015 * listening);
 				spine.rotation.y += amount * speaking * 0.008 * Math.sin(elapsed * 0.6);
-				spine.rotation.z += sway;
+				spine.rotation.z += mirror * sway;
 			}
 			if (chest) {
-				chest.rotation.x -= amount * 0.008 * breath;
-				chest.rotation.z -= sway * 0.35;
+				chest.rotation.x -= mirror * amount * 0.008 * breath;
+				chest.rotation.z -= mirror * sway * 0.35;
 			}
 			if (head) {
 				head.rotation.x +=
+					mirror *
 					amount *
 					(0.006 * breath + speaking * 0.012 * Math.sin(elapsed * 0.85) + listening * 0.025);
 				head.rotation.y +=
 					amount * (0.012 * Math.sin(elapsed * 0.32) + speaking * 0.008 * Math.sin(elapsed * 0.6));
 				head.rotation.z +=
-					amount * (0.006 * Math.sin(elapsed * 0.27) + listening * 0.025) - sway * 0.5;
+					mirror * (amount * (0.006 * Math.sin(elapsed * 0.27) + listening * 0.025) - sway * 0.5);
 			}
-			if (leftArm) leftArm.rotation.z += amount * 0.004 * breath;
-			if (rightArm) rightArm.rotation.z -= amount * 0.003 * Math.sin(elapsed * 1.1 - 0.2);
+			if (leftArm) leftArm.rotation.z += mirror * amount * 0.004 * breath;
+			if (rightArm) rightArm.rotation.z -= mirror * amount * 0.003 * Math.sin(elapsed * 1.1 - 0.2);
 			if (leftElbow) leftElbow.rotation.y -= amount * 0.006 * Math.sin(elapsed * 1.1 - 0.3);
 			if (rightElbow) rightElbow.rotation.y += amount * 0.004 * Math.sin(elapsed * 1.1 - 0.5);
-			for (const pose of poses) mirror(pose.node.quaternion);
 			if (current && (bodyWeight > 0 || authored)) {
 				for (const pose of poses) {
 					pose.q.copy(pose.node.quaternion);
@@ -426,8 +449,14 @@ export async function createAvatarRenderer(
 				(Math.max(fitHeight, fitWidth / camera.aspect) * 1.2) / (2 * Math.tan(Math.PI / 12));
 			// Widen before a limb reaches the edge; never zoom in/out on each gesture.
 			cameraDistance = Math.max(distance, cameraDistance);
-			camera.position.set(center.x, center.y, center.z + cameraDistance);
+			spin = reducedMotion || Math.abs(spin) < 0.01 ? 0 : spin * Math.exp(-dt * 3);
+			yaw += spin * dt;
+			camera.position
+				.setFromSphericalCoords(cameraDistance * zoom, Math.PI / 2 - pitch, yaw)
+				.add(center);
 			camera.lookAt(center);
+			camera.translateX(pan.x);
+			camera.translateY(pan.y);
 			renderer.render(scene, camera);
 		},
 		dispose() {
