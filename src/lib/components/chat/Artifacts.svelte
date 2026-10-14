@@ -261,7 +261,7 @@
 									? ' allow-forms'
 									: ''}{($settings?.iframeSandboxAllowSameOrigin ?? false)
 									? ' allow-same-origin'
-									: ''}"
+									: ''} allow-modals"
 								on:load={iframeLoadHandler}
 							></iframe>
 						{:else if contents[selectedContentIdx].type === 'svg'}

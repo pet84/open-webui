@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `google-genai==1.66.0` dál v `backend/requirements.txt` (pipe funkce Google).
 - Fork patche beze změny: iframe cookies/CSP, Umami, CalendarSidebar i18n, UserMenu bez "Admin Settings", `NODE_OPTIONS` v Dockerfile.
 - Oprava hlasového avatara: postavy VRM 0.x (většina z VRoid Hubu) stály s rukama nahoře — vestavěná póza teď převádí osy jako three-vrm-animation (`voice-avatar-renderer.ts`).
+- Náhled artefaktu (boční panel) má v sandboxu i `allow-modals`, aby šel z HTML artefaktu vyvolat `window.print()` — tlačítko „Uložit jako PDF“ v prezentacích z dovednosti Prezentace ArchEnergy (`Artifacts.svelte`). Ctrl+P v náhledu tiskl celé okno Airisu.
+- cs-CZ: popisek příkazu `/skills:create` už netvrdí „terminálová dovednost“ (terminál nepotřebuje).
 - Oprava Google pipeline agentů (NZÚ boty, Google Notebook, Gemini): nové vestavěné nástroje `create_skill` a `update_skill_files` měly parametr typu `list[Pydantic model]`, který google-genai neumí převést → každá odpověď končila „Failed to parse the parameter operations". Parametry jsou teď `list[dict]` (validace zůstává v `Skills`).
 - Nový vlastní parametr agenta `cached_context` (`{"url": …, "prefix": …}`): znalostní báze z URL se vloží úplně na začátek system promptu, u Claude přes OpenRouter se značkou `cache_control` (cache 5 min → opakované dotazy za ~desetinu). Řešeno v routeru (`utils/cached_context.py`), protože filtry a middleware přidávají text (datum s časem, paměť) na začátek systémové zprávy a slévají ji do řetězce. Pro NZÚ agenty na Claude Haiku.
 
