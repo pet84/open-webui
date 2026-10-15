@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.12.2] - 2026-10-14
 
-### Fork (pet84 / Airis)
+### Co je nového 🎉
 
-- Merge upstream v0.12.2 (tag), bez migrací.
-- cs-CZ: 4038 klíčů, 2 nové přeloženy (Ponechat obojí v porovnání revizí), 100 %.
-- Fork patche beze změny (allow-modals, cached_context, create_skill list[dict], iframe, Umami, google-genai, NODE_OPTIONS).
+- 👋 **Vítejte zpátky!** Airis je zase o kousek lepší – tady je pár věcí, které vám udělají radost.
+- 🎨 **Prezentace a dokumenty v našem designu.** Napište v chatu `/prezentace` (snímky na šířku – třeba na shromáždění SVJ) nebo `/dokument` (A4 na výšku – technický návrh, zpráva, protokol), vložte podklady a v náhledu je jedním tlačítkem **Uložíte jako PDF**.
+- 🧠 **Dlouhé chaty už nevadí.** Když konverzace hodně naroste, Airis si starší část sám shrne a pokračuje dál – rychleji a levněji. Nový chat pro nové téma je ale pořád nejlepší.
+- 🛡️ **Pojistka proti nechtěnému utrácení.** Každý má denně dost na běžnou práci (desítky otázek); limity jsou nastavené velmi měkce a hlídají jen omylem vysátý kredit. Kdybyste na ně narazili, dejte vědět Petrovi.
+- 🤝 **Porovnání textů umí „Ponechat obojí“** – při porovnání dvou verzí si můžete nechat obě najednou.
+- 🛠️ **Drobnosti:** spolehlivější hlas na Androidu, zdroje u schválených nástrojů se už neztrácejí a pár bezpečnostních oprav.
 
 ### Added
 
@@ -43,13 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.12.1] - 2026-10-14
 
-### Fork (pet84 / Airis)
+### Co je nového 🎉
 
-- Merge upstream v0.12.1 (tag).
-- cs-CZ: sloučeno s upstream (4036 klíčů), 126 nových textů přeloženo (Aplikace v kanálech, porovnání revizí, export .skill), terminologie forku zachována (100 %).
-- Oprava VRM 0.x avatara: fork patch z 0.12.0 odstraněn, upstream to opravil sám (#32270) — obě opravy dohromady by se sčítaly a build by padal na dvojí `const mirror`.
-- `package-lock.json` převzat z upstreamu (fork měl nekonzistentní `eol` 0.9.2 s odkazem na 0.9.1).
-- Fork patche beze změny: tisk z náhledu artefaktu (`allow-modals`), `cached_context`, `create_skill`/`update_skill_files` s `list[dict]`, iframe cookies/CSP, Umami, CalendarSidebar i18n, UserMenu, `google-genai`, `NODE_OPTIONS`, idempotentní migrace `b7c8d9e0f1a2`.
+- 🔀 **Porovnání revizí.** Příkazem `/compare` (nebo přes + v poli zprávy) vložíte navrženou úpravu textu a projdete změnu po změně – co převzít, co nechat.
+- 📦 **Dovednosti jako soubor.** Hotovou dovednost si můžete stáhnout jako `.skill` a poslat kolegovi.
+- ✅ **Vybraná dovednost a nástroje zůstanou zapnuté**, i když mezitím přepnete do jiného chatu.
+- 🛠️ **Drobnosti:** smazání zprávy uprostřed chatu už model nezmate, okno „Zeptat se / Vysvětlit“ se neořízne, zmizelo zbytečné opakované připojování po uspání počítače a desítky dalších oprav.
 
 ### Added
 
@@ -124,17 +126,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.12.0] - 2026-10-10
 
-### Fork (pet84 / Airis)
+### Co je nového 🎉
 
-- Merge upstream v0.12.0 (tag).
-- cs-CZ: sloučeno s upstream (3910 klíčů), 184 nových textů přeloženo, terminologie forku zachována (100 %).
-- `google-genai==1.66.0` dál v `backend/requirements.txt` (pipe funkce Google).
-- Fork patche beze změny: iframe cookies/CSP, Umami, CalendarSidebar i18n, UserMenu bez "Admin Settings", `NODE_OPTIONS` v Dockerfile.
-- Oprava hlasového avatara: postavy VRM 0.x (většina z VRoid Hubu) stály s rukama nahoře — vestavěná póza teď převádí osy jako three-vrm-animation (`voice-avatar-renderer.ts`).
-- Náhled artefaktu (boční panel) má v sandboxu i `allow-modals`, aby šel z HTML artefaktu vyvolat `window.print()` — tlačítko „Uložit jako PDF“ v prezentacích z dovednosti Prezentace ArchEnergy (`Artifacts.svelte`). Ctrl+P v náhledu tiskl celé okno Airisu.
-- cs-CZ: popisek příkazu `/skills:create` už netvrdí „terminálová dovednost“ (terminál nepotřebuje).
-- Oprava Google pipeline agentů (NZÚ boty, Google Notebook, Gemini): nové vestavěné nástroje `create_skill` a `update_skill_files` měly parametr typu `list[Pydantic model]`, který google-genai neumí převést → každá odpověď končila „Failed to parse the parameter operations". Parametry jsou teď `list[dict]` (validace zůstává v `Skills`).
-- Nový vlastní parametr agenta `cached_context` (`{"url": …, "prefix": …}`): znalostní báze z URL se vloží úplně na začátek system promptu, u Claude přes OpenRouter se značkou `cache_control` (cache 5 min → opakované dotazy za ~desetinu). Řešeno v routeru (`utils/cached_context.py`), protože filtry a middleware přidávají text (datum s časem, paměť) na začátek systémové zprávy a slévají ji do řetězce. Pro NZÚ agenty na Claude Haiku.
+- 🧩 **Dovednosti** – pravidla a postupy, které si jednou uložíte a pak zavoláte lomítkem v jakémkoli chatu. Nejrychleji vzniknou příkazem `/skills` → **Vytvořit dovednost** přímo z konverzace.
+- 👫 **Společné chaty s odpovídáním.** Sdílený chat teď může psát víc lidí najednou, u každé zprávy je vidět, kdo ji napsal.
+- 🗄️ **Znalosti jako průzkumník souborů** – složky a soubory vlevo, náhled vpravo, hledání a úpravy textu na místě.
+- 🛠️ **Drobnosti:** přehlednější úprava modelů, historie verzí modelů a dovedností a spousta oprav.
 
 ### Added
 
@@ -733,34 +730,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🧲 **Integrations tab is opt-in.** The Integrations tab in personal settings, where tool and terminal connections of your own are managed, is now hidden until an administrator turns on Direct Integrations under Integrations or sets "ENABLE_DIRECT_INTEGRATIONS", and hiding it leaves existing connections working. [Commit](https://github.com/open-webui/open-webui/commit/6d8e63e3666e1b1aa5540ffda0816be5f40c5271), [Commit](https://github.com/open-webui/open-webui/commit/c82634b9d01adadbf9780ff84a0a8168fdc4fdea)
 - 📡 **Image connection check endpoint.** The endpoint that checks an image generation connection has moved and now takes the connection to test in the request itself, so anything calling the old address needs updating. [Commit](https://github.com/open-webui/open-webui/commit/64bbdf7a73724986fac8bcf6e880fe32ef9ac495)
 
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Český překlad dorovnán na 100 %.** Upstream 0.11.4 rozšířil cs-CZ na 3552 klíčů a sám doplnil ~1900 dosud prázdných; fork přeložil zbylých 92 nových klíčů (porovnání souborů, obrázek na pozadí modelu, dovednosti z terminálu, vyhledávač Staan, nápovědné dotazy). Terminologie forku (Konverzace, Instrukce, Tvorba Agentů) zachována — 200 klíčů drží náš překlad před upstreamem.
-
-#### Changed
-
-- **Upstream merge 0.11.4** (327 commitů). **Žádné nové migrace** — upstream jen přepsal idempotentní `b7c8d9e0f1a2_add_last_read_at_to_chat.py` (převzato), schéma DB beze změny, záloha nebyla nutná. Migrační chain ověřen: jeden head `d4c1a8e37b62`, 58 revizí. Konflikty pouze v `main.py` (klíč `umami` + nový `i18n` v `/api/config`) a `cs-CZ/translation.json`.
-- Fork patche ověřeny beze změny: Node heap 6144 v `Dockerfile` (upstream svůj `NODE_OPTIONS` zakomentoval — náš zůstává), iframe embedding (`env.py`, `security_headers.py`), Umami (`config.py`, `main.py`), `$i18n.t()` v kalendáři, `UserMenu.svelte` bez „Admin Settings", vlastní favicony, vypnuté upstream CI workflows.
-- Obraz se dál staví bez `USE_SLIM` (standardní obraz; upstream ho zmenšil o ~170 MB).
-
-#### Fixed
-
-- **Vrácen balík `google-genai==1.66.0`** (`backend/requirements.txt`, `pyproject.toml`). Upstream 0.11.4 ho z obrazu vyhodil jako nepoužívaný, ale šest pipe funkcí Airisu (Google Gemini Pipeline, Google Notebook, NZÚ boty) ho importuje — po prvním nasazení 0.11.4 se při startu všechny samy deaktivovaly (`cannot import name 'genai' from 'google'`). Po opravě je nutné funkce v Administraci → Funkce znovu zapnout.
-
 ## [0.11.3] - 2026-08-31
-
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Doplněn český překlad (1 nový klíč).** „+{{COUNT}} more" → „+{{COUNT}} dalších". Pokrytí cs-CZ 2217/3122 (71 %).
-
-#### Changed
-
-- **Upstream merge 0.11.3** (11 commitů, 11 souborů — hotfix pár hodin po 0.11.2). **Žádné nové migrace**, schéma DB beze změny, záloha nebyla nutná. Migrační chain ověřen: jeden head `d4c1a8e37b62`, 58 revizí. Merge proběhl **bez jediného konfliktu**.
-- Fork patche ověřeny beze změny: Node heap 6144 v `Dockerfile`, iframe embedding (`env.py`, `security_headers.py`), Umami (`config.py`, `main.py`), `$i18n.t()` v kalendáři, `UserMenu.svelte` bez „Admin Settings", vlastní favicony, vypnuté upstream CI workflows.
 
 ### Added
 
@@ -776,17 +746,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔌 **Disconnect OAuth only where there is OAuth.** The disconnect control on a tool server reached over MCP now appears only where that server signs in through OAuth and an account is connected, rather than on servers that use no sign-in at all. [#29296](https://github.com/open-webui/open-webui/issues/29296)
 
 ## [0.11.2] - 2026-08-31
-
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Doplněn český překlad (4 nové klíče).** 3119 → 3122 klíčů (upstream jeden klíč odstranil). Nově: „Režim přístupnosti", „Rodina písma" a nastavení lokálního písma rozhraní, hlášení o částečně neúspěšném nahrání souborů.
-
-#### Changed
-
-- **Upstream merge 0.11.2** (100 commitů, 175 souborů). **Žádné nové migrace** — schéma DB beze změny, zálohu nebylo nutné pořizovat. Migrační chain ověřen: jeden head `d4c1a8e37b62`, 58 revizí.
-- Fork patche ověřeny beze změny: Node heap 6144 v `Dockerfile`, iframe embedding (`env.py`, `security_headers.py`), Umami (`config.py`, `main.py`), `$i18n.t()` v kalendáři, odstraněná položka „Admin Settings" v `UserMenu.svelte`, vlastní favicony, vypnuté upstream CI workflows.
 
 ### Added
 
@@ -843,21 +802,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏷️ **High Contrast Mode is now Accessibility Mode.** The interface setting previously called 'High Contrast Mode' is now called 'Accessibility Mode', with the same switch in the same place. [Commit](https://github.com/open-webui/open-webui/commit/e6031ea6daec897eddbcf0c8b03c2d6fad2b506e)
 
 ## [0.11.1] - 2026-08-25
-
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Doplněn český překlad (111 nových klíčů).** 3024 → 3119 klíčů; pokrytí cs-CZ 2214/3119 (71 %). Nové oblasti: oprávnění nástrojů (Povolit/Zamítnout volání), správa lokálních modelů (LM Studio, stahování/načítání), terminál a sandbox iframe, Tika 3.x/4.x, přeindexování vektorů, výchozí nastavení rozhraní.
-
-#### Changed
-
-- **Upstream merge 0.11.1** (462 commitů). 3 nové migrace (`1ce6ade7d93b` index group_member.user_id, `6d09d1bf1f23` oprava dvojitě zakódovaného user OAuth, `d4c1a8e37b62` chat timer_at + indexy) — DB záloha pořízena před nasazením. Migrační chain ověřen: jeden head `d4c1a8e37b62`, 58 revizí.
-- **Přihlašovací stránka převzata z upstreamu.** Fork měl vlastní (centrované) umístění loga; upstream k němu ve v0.11.1 doplnil licenční doložku, že se jeho sign-in logo nesmí měnit ani přesouvat. Kosmetická fork úprava proto zrušena a použita upstream verze.
-
-#### Fixed
-
-- **Anglické názvy měsíců a dnů v kalendáři.** Upstream znovu odstranil `$i18n.t()` u `miniMonthNames` (`CalendarSidebar.svelte`) a nově i u `DAY_NAMES` (`CalendarView.svelte`). Obojí vráceno, upstream velikosti písma (`0.6875rem`) zachovány.
 
 ### Added
 
@@ -1176,21 +1120,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.11.0] - 2026-07-27
 
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Doplněn český překlad (611 nových klíčů).** v0.11.0 přineslo 611 nových i18n klíčů (2578 → 3024). Všechny byly přeloženy do češtiny — popisky admin nastavení, oprávnění, sub-agenti, proměnné konverzace, zhuštění kontextu, LDAP/OAuth, extrakce dokumentů, plurály (`_one/_few/_many/_other`). Pokrytí cs-CZ: 2112/3024 (69,8 %); zbylé prázdné klíče byly nepřeložené už před tímto vydáním. Terminologie sjednocena s forkem (Prompt → Instrukce, Chat → Konverzace, Workspace → Tvorba Agentů).
-
-#### Changed
-
-- **Upstream merge 0.11.0.** 616 commitů, kompletní redesign UI. **7 nových schema migrací** (chat message meta, user variables, chat variables, automation folder, current_message_id, memory covering index, unique normalized email) — DB záloha pořízena před nasazením.
-- **`SecurityHeadersMiddleware` přepsán upstreamem na pure ASGI**; fork patch pro iframe embedding znovu aplikován (odstranění `X-Frame-Options` se nyní vyhodnocuje jednou v `__init__` jako `_strip_xframe`, konzistentně s cachovanými hlavičkami).
-
-#### Fixed
-
-- **Anglické názvy měsíců v mini kalendáři.** Upstream v0.11.0 odstranil `$i18n.t()` u `miniMonthNames` v `CalendarSidebar.svelte` (v0.10.2 ho ještě měl) bez náhrady — v českém UI by se měsíce zobrazovaly anglicky. Wrapper vrácen, upstream styl (`font-normal`) zachován.
-
 ### Added
 
 - 🎨 **Redesigned interface.** Open WebUI has been visually rebuilt from the ground up. All aspects of the User Interface, from the chat view to the admin panel. Now with a narrower conversation column, lighter typography, tidier spacing, consistent menus and dropdowns, clearly outlined text boxes, and settings rearranged. [Commit](https://github.com/open-webui/open-webui/commit/aedb6bef4e2eb12234c02085a545ff395d96db18), [Commit](https://github.com/open-webui/open-webui/commit/b3255a36569f295766271b8a2b0bd969b4083b9f), [Commit](https://github.com/open-webui/open-webui/commit/ba067258dea2229a9956077b3b0d7b1c68b56f66), [Commit](https://github.com/open-webui/open-webui/commit/8dd862d3383978f21111e63fb2d6029711abed9a), [Commit](https://github.com/open-webui/open-webui/commit/263bbc77d803e83b9af4b04c0cae29705af5f072), [Commit](https://github.com/open-webui/open-webui/commit/f8ea15b84a274712dca33daa970f63ed7368043e), [Commit](https://github.com/open-webui/open-webui/commit/9f17c5960a0e47a09773da4bba12997a31222fc8), [Commit](https://github.com/open-webui/open-webui/commit/6772b1cb4f4e0d3dc166956014e6e7b9bddc721a), [Commit](https://github.com/open-webui/open-webui/commit/d3fd860c131846a9458888f9c256a9a29f3767f2), [Commit](https://github.com/open-webui/open-webui/commit/f1584b5a3764f72de2de6caad507e7c39ad19c23), [Commit](https://github.com/open-webui/open-webui/commit/2e8d92c7b1a9bb8d35f4a27ba3c73368d735c480), [Commit](https://github.com/open-webui/open-webui/commit/e58a4633b15ae53d33fc3b46cb97c76d86be325f), [Commit](https://github.com/open-webui/open-webui/commit/04b146f2cec7e6a01e9d3590eb83655c128fa3c7), [Commit](https://github.com/open-webui/open-webui/commit/e5e2cd78769639b2df83776f1b991966f922f8b4), [Commit](https://github.com/open-webui/open-webui/commit/3316ba76aabe5429596ffd130fd36be4d5c3aa6c), [Commit](https://github.com/open-webui/open-webui/commit/6fcb38fe2e0aded9b85f655cd8f3279e9f4e765e), [Commit](https://github.com/open-webui/open-webui/commit/421da674468f638f72cc5266c5a3874aa3bca3b7), [Commit](https://github.com/open-webui/open-webui/commit/d0bea60581eaa07d41f92ad8f86007e83247e061), [Commit](https://github.com/open-webui/open-webui/commit/21e180182a5096481d4cbb1a8f94212c0a515a40), [Commit](https://github.com/open-webui/open-webui/commit/d027a32ed134ae104f2f142ba45ff38e56215c5f), [Commit](https://github.com/open-webui/open-webui/commit/437c06c4795a72700295d7690d5fd65d1153372c), [Commit](https://github.com/open-webui/open-webui/commit/1bf05ebc7d135d74969438824778c9f73243ba8d), [Commit](https://github.com/open-webui/open-webui/commit/fd07e3a8e3e619f3712067765b416f0925fa80d3), [Commit](https://github.com/open-webui/open-webui/commit/d3ea51fd466a8741afc4dfd4f0d0f2f77fb6467f), [Commit](https://github.com/open-webui/open-webui/commit/4da2ff2655d9abb851805da127cf60b4d9ad1aa7), [Commit](https://github.com/open-webui/open-webui/commit/2fcb36267f034f2b83f936bfacedc20b680a2710), [Commit](https://github.com/open-webui/open-webui/commit/1428a4ddce4998cb3664a5ce37e176442dd426fa), [Commit](https://github.com/open-webui/open-webui/commit/bc8d24c951e9a2c973fc2dd1f2832a2b0855bc0e), [Commit](https://github.com/open-webui/open-webui/commit/704d07e9a20a830aad7bfc5131b0d92621cf0691), [Commit](https://github.com/open-webui/open-webui/commit/e88d2e053c2a63cce3823c9b6006f4a184c4fef2), [Commit](https://github.com/open-webui/open-webui/commit/6940297486d4a5de127efd1a5148b0adcebe87e3), [Commit](https://github.com/open-webui/open-webui/commit/9ca8cf528af1c49da3f0a2bc3c6ca95c1dedbcf5), [Commit](https://github.com/open-webui/open-webui/commit/c4efa81d08c425678c810c51b4d62716e1e57117), [Commit](https://github.com/open-webui/open-webui/commit/bb12b1a18b77d80829cedb2d5bf965808222415b), [Commit](https://github.com/open-webui/open-webui/commit/49abfbdd155dc22882fdcb09989e4f4964db16ee), [#27178](https://github.com/open-webui/open-webui/pull/27178), [Commit](https://github.com/open-webui/open-webui/commit/dcc7fb1e8ef144205531829f8a56e52171c4d63d), [Commit](https://github.com/open-webui/open-webui/commit/5c505c1119fec6170c1bc092ed162f86262a887e)
@@ -1481,12 +1410,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.2] - 2026-07-01
 
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream merge 0.10.2.** Pulled latest upstream into the Airis Chat 3.0 fork on 2026-07-01. Clean auto-merge, no conflicts. Contains a bugfix to the existing `b10670c03dd5` user-table migration (JSON conversion) — already applied on prod during the v0.10.1 deploy, so no new schema migration runs on the production DB. Fork-specific patches preserved (verified): WEBUI_NAME branding, iframe embedding cookies, Umami SPA tracker, idempotent `last_read_at` migration, Czech translations, `/backups/` gitignore.
-
 ### Added
 
 - 💭 **Streamed reasoning display.** Models that emit thinking or reasoning now show that content as it streams, and it renders correctly in the chat overview and in exported conversations. [Commit](https://github.com/open-webui/open-webui/commit/0b75445ff9a42e37640c034812d0de9b84039e60), [Commit](https://github.com/open-webui/open-webui/commit/af1c0eee89810fa4c36e3eb7e4eba6de685bd7ca), [Commit](https://github.com/open-webui/open-webui/commit/4b08d65597e5b634b7191b0bd6d28feeafcc2a48), [Commit](https://github.com/open-webui/open-webui/commit/fa2abe4cb6a085a4c9045bf8d8ff4b6beffdef6a)
@@ -1525,12 +1448,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚠️ **Database Migrations**: This release includes database schema changes; we strongly recommend backing up your database and all associated data before upgrading in production environments. If you are running a multi-worker, multi-server, or load-balanced deployment, all instances must be updated simultaneously, rolling updates are not supported and will cause application failures due to schema incompatibility.
 
 ## [0.10.1] - 2026-06-29
-
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream merge 0.10.0 + 0.10.1.** Pulled latest upstream into the Airis Chat 3.0 fork on 2026-06-29. Major release (352 commits): config reshaped to per-key DB rows (`3ff2c63645b8`), memory path/meta/type additions, chat-message context summary, valve encryption (`ENABLE_VALVE_ENCRYPTION`). Several schema migrations — DB backup taken before deploy. Fork-specific patches preserved: WEBUI_NAME branding, iframe embedding cookies (env.py), Umami SPA tracker (re-applied to the refactored main.py `/api/config`), idempotent `last_read_at` migration, Czech translations.
 
 ### Fixed
 
@@ -1754,12 +1671,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.6] - 2026-06-01
 
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream merge 0.9.6.** Pulled latest upstream into the Airis Chat 3.0 fork on 2026-06-02. Massive upstream refactor (peewee migration layer deprecated, legacy table primary keys fixed, knowledge base directories, channels streaming agent, `ConfigVar` rename). Many DB migrations including legacy PK additions — DB backup taken before deploy. Fork-specific patches preserved: WEBUI_NAME branding, iframe embedding cookies (env.py), Umami SPA tracker, idempotent `last_read_at` migration, Czech translations.
-
 ### Added
 
 - 📦 **Official knowledge base sync tool.** A new companion tool from Open WebUI, oikb, keeps a knowledge base in sync with a local directory, GitHub repo, S3 bucket, Confluence space, or any of more than 40 other sources, uploading only new and changed files using the incremental sync support added in this release. [oikb](https://github.com/open-webui/oikb)
@@ -1894,12 +1805,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.5] - 2026-05-09
 
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream merge 0.9.5.** Pulled latest upstream into the Airis Chat 3.0 fork on 2026-05-11. Includes security hardening (redirect-based SSRF protection, mass-assignment fixes, public-sharing permission gating) and the new `IFRAME_CSP` env var. No new schema migrations. Fork-specific patches preserved: WEBUI_NAME branding, iframe embedding cookies, Umami SPA tracker, idempotent `last_read_at` migration, Czech translations.
-
 ### Added
 
 - 🛡️ **Redirect-based SSRF protection.** All outbound HTTP requests now block 3xx redirects by default via a new `AIOHTTP_CLIENT_ALLOW_REDIRECTS` environment variable, preventing redirect-based SSRF where a public URL silently redirects to internal addresses (RFC 1918, loopback, cloud-metadata endpoints). Affected call sites include web fetch, image loading, OAuth discovery, tool server execution, and code interpreter login. [#24491](https://github.com/open-webui/open-webui/pull/24491)
@@ -1935,12 +1840,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📋 **PR template issue requirement.** Pull requests now require a linked Issue or Discussion reference, ensuring better traceability for all contributions. PRs without a linked issue or discussion may be closed without review.
 
 ## [0.9.4] - 2026-05-09
-
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream merge 0.9.3 + 0.9.4.** Pulled latest upstream releases into the Airis Chat 3.0 fork. Includes new schema migrations (pinned notes per user, memory user_id index) — DB backup taken before deploy. Fork-specific patches preserved: Czech translations, `WEBUI_NAME` branding, iframe embedding (auto `SameSite=None` + `Secure` cookies), Umami SPA tracker fix, idempotent `last_read_at` migration, Railway nightly redeploy workflow.
 
 ### Fixed
 
@@ -2046,12 +1945,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.2] - 2026-04-24
 
-### Fork (pet84 / Airis)
-
-#### Changed
-
-- **Upstream:** Merged `open-webui/main` (0.9.x): scheduled automations, calendar workspace, task list in chat, async backend paths, DB migrations. Git tag `v0.9.2`. **Before deploying:** back up the database / `backend/data` volume (see `BACKUP_DATA.md`).
-
 ### Added
 
 - 🧠 **PaddleOCR-vl document extraction.** Administrators can now use PaddleOCR-vl as a content extraction engine for document processing, with configurable API URL and token settings in document retrieval configuration. [#23945](https://github.com/open-webui/open-webui/pull/23945)
@@ -2096,21 +1989,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🖥️ **Windows startup script.** The Windows startup batch script has been updated for improved compatibility.
 
 ## [0.9.1] - 2026-04-21
-
-### Fork (pet84 / Airis)
-
-#### Added
-
-- **Railway nightly redeploy (GitHub Actions).** Scheduled workflow (`0 2 * * *` UTC) and manual dispatch to soft-restart the app on Railway via `railway redeploy`, plus optional `railway status --json` debug listing for service name/ID verification.
-
-#### Changed
-
-- **CI:** Railway `redeploy` uses current `@railway/cli` syntax (`--service` and `--yes` only); `RAILWAY_ENVIRONMENT` is passed as an environment variable instead of the unsupported `--environment` flag.
-- **Fork branding:** When `WEBUI_NAME` is set, the UI no longer appends “(Open WebUI)” to the custom name.
-
-#### Fixed
-
-- **Umami analytics:** Load the tracker script so `document.currentScript` works correctly in the SPA.
 
 ### Fixed
 
