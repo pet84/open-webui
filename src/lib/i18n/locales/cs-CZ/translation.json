@@ -1476,6 +1476,8 @@
 	"JSON Spec": "Specifikace JSON",
 	"July": "Červenec",
 	"June": "Červen",
+	"Keep both": "Ponechat obojí",
+	"Keep both versions in the proposed revision, original first.": "Ponechá v navržené revizi obě verze, originál jako první.",
 	"Keep current webhook URL": "Ponechat aktuální URL webhooku",
 	"Keep in Sidebar": "Ponechat v postranním panelu",
 	"Keep tools listed even while your shell is closed.": "Ponechat nástroje v nabídce i při zavřeném shellu.",

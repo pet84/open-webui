@@ -1154,6 +1154,7 @@ async def chat_completion(
         await get_all_models(request, user=user)
 
     model_id = form_data.get('model', None)
+    request.state.model_id = model_id
     model_item = form_data.pop('model_item', {})
     tasks = form_data.pop('background_tasks', None)
 
@@ -1815,7 +1816,7 @@ async def chat_completion(
 
     # Fan out: one task per model
     if metadata.get('session_id') and metadata.get('chat_id'):
-        task_ids = []
+        chat_tasks = {}
         subagent_results = []
         is_internal = getattr(request.state, 'internal', False) is True
         chat_id = metadata['chat_id']
@@ -1871,13 +1872,13 @@ async def chat_completion(
                 subagent_results.append(await process)
                 continue
 
-            task_id, _ = await create_task(
+            task_id, task = await create_task(
                 request.app.state.redis,
                 process,
                 id=chat_id,
                 task_id=per_model_metadata['task_id'],
             )
-            task_ids.append(task_id)
+            chat_tasks[task_id] = task
 
         if is_internal:
             return {
@@ -1888,7 +1889,7 @@ async def chat_completion(
             }
 
         # Emit chat:active=true
-        if task_ids:
+        if chat_tasks:
             event_emitter = await get_event_emitter(
                 {**metadata, 'message_id': message_ids[0]['message_id']},
                 update_db=False,
@@ -1897,9 +1898,13 @@ async def chat_completion(
                 folder_id = metadata.get('folder_id') or await Chats.get_chat_folder_id(chat_id, user.id)
                 await event_emitter({'type': 'chat:active', 'data': {'active': True, 'folder_id': folder_id}})
 
+        # Automation chat runs must finish before their caller records success.
+        if metadata.get('automation_id') and is_saved_chat_id(chat_id):
+            await asyncio.gather(*chat_tasks.values())
+
         return {
             'status': True,
-            'task_ids': task_ids,
+            'task_ids': list(chat_tasks),
             'chat_id': chat_id,
         }
     else:
@@ -2057,6 +2062,7 @@ async def generate_messages(
     Anthropic's x-api-key header (via middleware translation).
     """
     requested_model = form_data.get('model', '')
+    request.state.model_id = requested_model
     input_tokens = None
     try:
         input_tokens = await openai.count_anthropic_tokens(request, form_data, user)
