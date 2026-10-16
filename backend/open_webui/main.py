@@ -179,6 +179,7 @@ from open_webui.routers import (
     prompts,
     retrieval,
     scim,
+    search,
     skills,
     tasks,
     terminals,
@@ -259,6 +260,7 @@ from open_webui.utils.middleware import (
     publish_chat_failed_event,
 )
 from open_webui.utils.misc import get_response_error_detail, merge_model_params
+from open_webui.utils.airis_chyby import cesky_kredit  # Fork patch (Airis)
 from open_webui.utils.model_ids import strip_provider_model_prefix
 from open_webui.utils.models import (
     check_model_access,
@@ -896,6 +898,7 @@ app.include_router(apps.router, prefix='/api/v1/apps', tags=['apps'])
 app.include_router(channels.router, prefix='/api/v1/channels', tags=['channels'])
 app.include_router(chats.router, prefix='/api/v1/chats', tags=['chats'])
 app.include_router(notes.router, prefix='/api/v1/notes', tags=['notes'])
+app.include_router(search.router, prefix='/api/v1/search', tags=['search'])
 
 
 app.include_router(models.router, prefix='/api/v1/models', tags=['models'])
@@ -1704,6 +1707,7 @@ async def chat_completion(
             finally:
                 if error_detail is not None:
                     log.error('Error processing chat payload: %s', error_detail)
+                    error_detail = cesky_kredit(error_detail)  # Fork patch (Airis): došlý kredit → česká hláška
                     if metadata.get('chat_id') and metadata.get('message_id'):
                         if is_saved_chat_id(metadata['chat_id']):
                             try:
@@ -2359,6 +2363,7 @@ async def get_app_config(request: Request):
         'folders.enable',
         'folders.max_file_count',
         'channels.enable',
+        'channels.encryption.enable',
         'apps.enable',
         'calendar.enable',
         'automations.enable',
@@ -2457,6 +2462,7 @@ async def get_app_config(request: Request):
                     'enable_folders': config.get('folders.enable'),
                     'folder_max_file_count': config.get('folders.max_file_count'),
                     'enable_channels': config.get('channels.enable'),
+                    'enable_encrypted_channels': config.get('channels.encryption.enable'),
                     'enable_apps': config.get('apps.enable'),
                     'enable_calendar': config.get('calendar.enable'),
                     'enable_automations': config.get('automations.enable'),

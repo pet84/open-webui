@@ -4,6 +4,21 @@ Technické poznámky k úpravám forku proti upstreamu Open WebUI – co se při
 zachovat. Uživatelský přehled novinek (česky) je v `CHANGELOG.md` v sekci „Co je nového“ – ten se ukazuje
 v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
 
+## [0.12.3] - 2026-10-16
+
+- Merge upstream v0.12.3 (tag), bez migrací. Nový krok `npm run crypto:verify` před buildem (šifrované kanály);
+  lokálně na Windows padá na cestě `C:\C:\…`, v GitHub Actions (Linux) běží.
+- cs-CZ: 4124 klíčů, 16 konfliktů vyřešeno (naše překlady zachovány), 86 nových textů přeloženo (hledání v pracovním
+  prostoru, šifrované chaty, porovnání, komentáře v dokumentech), 100 %.
+- **Nový fork patch: česká hláška při došlém kreditu** (`utils/airis_chyby.py`, `cesky_kredit()`), volaná v
+  `middleware.py` (`get_message_error_content` + nestreamovaná chyba) a `main.py` (chyba zpracování dotazu).
+  OpenRouter 402 („requires more credits“), OpenAI `insufficient_quota` / „exceeded your current quota“,
+  Google „spending cap“ (openai-compatible připojení). Původní text se dál loguje. Při merge zachovat.
+- ⚠️ Upstream změna: dovednosti připojené k modelu se teď posílají celé s každou zprávou (dřív jen název/popis).
+  Dovednost `shrnuti-na-3-body` byla připojená k NZÚ agentům → při nasazení odpojena, jinak by odpovídali jen třemi odrážkami.
+  `artefakt` zůstává (je podmíněná, 732 znaků).
+- Fork patche beze změny (allow-modals, cached_context, create_skill list[dict], iframe, Umami, google-genai, NODE_OPTIONS).
+
 ## [0.12.2] - 2026-10-14
 
 - Merge upstream v0.12.2 (tag), bez migrací.
