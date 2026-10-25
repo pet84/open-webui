@@ -4,6 +4,26 @@ Technické poznámky k úpravám forku proti upstreamu Open WebUI – co se při
 zachovat. Uživatelský přehled novinek (česky) je v `CHANGELOG.md` v sekci „Co je nového“ – ten se ukazuje
 v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
 
+## [0.12.4] - 2026-10-25
+
+- Merge upstream v0.12.4 (tag), bez nových migrací. Nasazeno přímo z 0.12.2 – větev 0.12.3 se do produkce nedostala,
+  obě verze jdou ven najednou.
+- Konflikty: `backend/requirements.txt` a `pyproject.toml` (náš `google-genai==1.66.0` ponechán, `aiohttp` 3.14.5
+  a `mcp` 2.3.0 z upstreamu), cs-CZ.
+- cs-CZ: 4205 klíčů, 81 nových (73 přeložil upstream, 8 doplněno – skryté modely, viditelné ovládací prvky, LDAP doména,
+  shrnutí zhuštěného kontextu), 100 %.
+- **`ENABLE_SKILL_LAZY_LOADING=true`** (env v Coolify, při prvním startu se zapíše do DB jako `skills.lazy_loading.enable`;
+  dál se přepíná v Administrace → Obecné). Dovednosti připojené k modelu a zapnuté v nabídce + se modelu jen vypíšou
+  (název + popis) a načte si je nástrojem `view_skill`; zmínka lomítkem (`/prezentace…` → `<$id|název>`) se načte hned.
+  Důvod: od 0.12.3 by se připojené dovednosti posílaly celé s každou zprávou → NZÚ agenti s `shrnuti-na-3-body` by
+  odpovídali jen třemi odrážkami a každá zpráva by byla dražší. Se zapnutým líným načítáním zůstává chování jako v 0.12.2,
+  odpojovat dovednost není potřeba. Modely bez vestavěných nástrojů (function calling „legacy“) dostanou dovednosti
+  dál celé – upstream fallback.
+- Upstream změny, které Airis neovlivní (ověřeno v DB): Direct Integrations vypnuté vypíná i uživatelské tool servery
+  (žádný uživatel žádný nemá), Docker obraz na Pythonu 3.12 / Debian 13 (požadavky funkcí jsou bez pinů).
+- Fork patche beze změny (allow-modals, cached_context, create_skill list[dict], airis_chyby, iframe, Umami,
+  google-genai, NODE_OPTIONS, CalendarSidebar, UserMenu, b7c8d9e0f1a2).
+
 ## [0.12.3] - 2026-10-16
 
 - Merge upstream v0.12.3 (tag), bez migrací. Nový krok `npm run crypto:verify` před buildem (šifrované kanály);
@@ -15,7 +35,8 @@ v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
   OpenRouter 402 („requires more credits“), OpenAI `insufficient_quota` / „exceeded your current quota“,
   Google „spending cap“ (openai-compatible připojení). Původní text se dál loguje. Při merge zachovat.
 - ⚠️ Upstream změna: dovednosti připojené k modelu se teď posílají celé s každou zprávou (dřív jen název/popis).
-  Dovednost `shrnuti-na-3-body` byla připojená k NZÚ agentům → při nasazení odpojena, jinak by odpovídali jen třemi odrážkami.
+  Dovednost `shrnuti-na-3-body` je připojená k NZÚ agentům → odpovídali by jen třemi odrážkami; vyřešeno v 0.12.4
+  zapnutím `ENABLE_SKILL_LAZY_LOADING` (odpojovat netřeba).
   `artefakt` zůstává (je podmíněná, 732 znaků).
 - Fork patche beze změny (allow-modals, cached_context, create_skill list[dict], iframe, Umami, google-genai, NODE_OPTIONS).
 
