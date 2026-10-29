@@ -4,6 +4,18 @@ Technické poznámky k úpravám forku proti upstreamu Open WebUI – co se při
 zachovat. Uživatelský přehled novinek (česky) je v `CHANGELOG.md` v sekci „Co je nového“ – ten se ukazuje
 v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
 
+## [0.12.5] - 2026-10-29
+
+- Merge upstream v0.12.5 (tag), bez nových migrací (upstream jen upravil `b7c8d9e0f1a2`, naše idempotentní verze ponechána).
+- Konflikty: `chat/Messages/ToolOutputFile.svelte` (upstream přejmenoval `TerminalOutputFile.svelte`; fork soubor neměnil →
+  vzata upstream verze) a cs-CZ.
+- cs-CZ: 4350 klíčů, 146 nových přeloženo (stránky v poznámkách, relace v analytice, výměna klíče API, údaje od
+  poskytovatele u modelů), upstream tentokrát nové české texty nedodal, 100 %. Terminologie: Session → Relace,
+  Sub-agent → Podagent, Trace → Průběh.
+- `ENABLE_SKILL_LAZY_LOADING` dál funguje (middleware beze změny podmínky).
+- Fork patche beze změny (allow-modals, cached_context, create_skill list[dict], airis_chyby, iframe, Umami,
+  google-genai, NODE_OPTIONS, CalendarSidebar, UserMenu, b7c8d9e0f1a2).
+
 ## [0.12.4] - 2026-10-25
 
 - Merge upstream v0.12.4 (tag), bez nových migrací. Nasazeno přímo z 0.12.2 – větev 0.12.3 se do produkce nedostala,
