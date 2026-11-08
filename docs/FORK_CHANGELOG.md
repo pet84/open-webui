@@ -4,6 +4,27 @@ Technické poznámky k úpravám forku proti upstreamu Open WebUI – co se při
 zachovat. Uživatelský přehled novinek (česky) je v `CHANGELOG.md` v sekci „Co je nového“ – ten se ukazuje
 v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
 
+## [0.13.2] - 2026-11-08
+
+- Merge upstream v0.13.2 (tag; obsahuje i 0.13.0 a 0.13.1). **6 nových migrací** (`6a23bd107e54` chat view state,
+  `6f8c2a91d4e7` tool is_active, `8bc7e5a902d1` auth session, `9f6c2a8d1b43` indexy kanálů, `c41f8d9e2a10` komentáře,
+  `e42c8f710a36` schránka upozornění), řetěz má jeden head `9f6c2a8d1b43` → před nasazením záloha DB.
+- Konflikty: `utils/middleware.py` (import `cesky_kredit` vedle nového `recall_memories`/`MCPAppResult`),
+  `routes/+layout.svelte` (import Umami vedle nového Tether), ikony v `static/static/` (ponechány naše), cs-CZ.
+- cs-CZ: 4721 klíčů, 371 nových (185 přeložil upstream, 186 doplněno – Git panel, terminál, editovatelný Excel,
+  hlasové poznámky, automatická oprávnění nástrojů, Tool Search, hranice plného textu), 100 %, placeholdery sedí.
+- **Nový fork patch – `utils/middleware.py` u `initial_output`:** od 0.13.1 jde paměť, seznam dovedností a seznam
+  připojených znalostí jako skryté výsledky nástrojů (assistant `tool_calls` s prázdným textem + role `tool`).
+  Naše Google pipe funkce (`google_notebook*`, `google_gemini_pipeline`) si zprávy převádějí samy: asistent s `""`
+  → prázdný textový part pro Gemini (riziko 400), `tool` → `user`. Pro modely s `pipe` proto skrytý kontext
+  vkládáme do system promptu jako v 0.12 a do konverzace ho neukládáme. Při merge zachovat.
+- Změny chování k ohlídání: přílohy se při nativním volání nástrojů už nepřednačítají (`file_context` default false) –
+  agenti s uloženým `file_context: true` (všichni AIRIS-* dle zálohy 9/2026) se chovají postaru; base modely bez
+  uložené schopnosti ne. `RAG_TOP_K` 3 → 10 a `CHUNK_SIZE` 1024 jen pokud nejsou uložené v DB. Limit kol nástrojů
+  1024 a podagenti bez limitu (filtr `limity_ai` hlídá cenu za den, ne počet kol).
+- Fork patche beze změny (allow-modals, cached_context, create_skill/update_skill_files list[dict], airis_chyby,
+  iframe, Umami, google-genai, NODE_OPTIONS 6144, CalendarSidebar, UserMenu, b7c8d9e0f1a2).
+
 ## [0.12.5] - 2026-10-29
 
 - Merge upstream v0.12.5 (tag), bez nových migrací (upstream jen upravil `b7c8d9e0f1a2`, naše idempotentní verze ponechána).

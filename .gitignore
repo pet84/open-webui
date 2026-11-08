@@ -320,3 +320,7 @@ cypress/screenshots
 INTERNAL_NOTES.md
 
 .cptr
+/evals/
+
+# Local temporary fixtures and screenshots
+/tmp/
