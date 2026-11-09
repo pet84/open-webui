@@ -4,6 +4,16 @@ Technické poznámky k úpravám forku proti upstreamu Open WebUI – co se při
 zachovat. Uživatelský přehled novinek (česky) je v `CHANGELOG.md` v sekci „Co je nového“ – ten se ukazuje
 v okně po aktualizaci, proto sem patří technika a tam lidská řeč.
 
+## [0.13.3] - 2026-11-09
+
+- Merge upstream v0.13.3 (tag), bez konfliktů, bez migrací, beze změn requirements. Upstream měnil jen pt-BR,
+  cs-CZ beze změny (4721 klíčů, 100 %).
+- `Dockerfile`: upstream přidal `command -v ollama` jen do větve `USE_OLLAMA=true`; náš `NODE_OPTIONS` 6144 zůstal.
+- `utils/middleware.py` upstream upravil (reasoning_format u `convert_output_to_messages`) – naše pojistka pro pipe
+  modely (skrytý kontext do system promptu) zůstala nad tím beze změny.
+- Fork patche beze změny (allow-modals, cached_context, create_skill/update_skill_files list[dict], airis_chyby,
+  iframe, Umami, google-genai, NODE_OPTIONS, CalendarSidebar, UserMenu, b7c8d9e0f1a2, pipe kontext).
+
 ## [0.13.2] - 2026-11-08
 
 - Merge upstream v0.13.2 (tag; obsahuje i 0.13.0 a 0.13.1). **6 nových migrací** (`6a23bd107e54` chat view state,
